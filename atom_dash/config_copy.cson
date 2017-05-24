@@ -1,0 +1,140 @@
+"*":
+  Hydrogen:
+    debug: true
+    languageMappings: "{\"python\": \"magicpython\"}"
+  core:
+    disabledPackages: [
+      "language-gfm"
+      "term3"
+      "terminal-plus"
+      "autocomplete-python"
+      "markdown-preview"
+      "language-python"
+      "language-r"
+      "r-exec"
+      "script"
+    ]
+    excludeVcsIgnoredPaths: false
+    telemetryConsent: "no"
+    themes: [
+      "atom-light-ui"
+      "solarized-light-syntax"
+    ]
+  dash:
+    filenames:
+      # ~/.hammerspoon
+      "init-local-sample.lua": [
+        "hammerspoon"
+        "lua"
+      ]
+      "init.lua": [
+        "hammerspoon"
+        "lua"
+      ]
+      "oh-my-hamerspoon.lua": [
+        "hammerspoon"
+        "lua"
+      ]
+      "omh-lib.lua": [
+        "hammerspoon"
+        "lua"
+      ]
+      # ~/.hammerspoon/plugins
+      "testtimer.lua": [
+        "hammerspoon"
+        "lua"
+      ]
+      # ~/.hammerspoon/plugins/apps
+      "evernote.lua": [
+        "hammerspoon"
+        "lua"
+      ]
+      "hammerspoon_config_reload.lua": [
+        "hammerspoon"
+        "lua"
+      ]
+      "hammerspoon_install_cli.lua": [
+        "hammerspoon"
+        "lua"
+      ]
+      "hammerspoon_toggle_console.lua": [
+        "hammerspoon"
+        "lua"
+      ]
+      "skype_mute.lua": [
+        "hammerspoon"
+        "lua"
+      ]
+      "universal_archive.lua": [
+        "hammerspoon"
+        "lua"
+      ]
+      "universal_omnifocus.lua": [
+        "hammerspoon"
+        "lua"
+      ]
+      # ~/.hammerspoon/plugins/audio
+      "headphones_watcher.lua": [
+        "hammerspoon"
+        "lua"
+      ]
+      # ~/.hammerspoon/plugins/keyboard
+      "menubar_indicator.lua": [
+        "hammerspoon"
+        "lua"
+      ]
+      # ~/.hammerspoon/plugins/misc
+      "clipboard.lua": [
+        "hammerspoon"
+        "lua"
+      ]
+      "colorpicker.lua": [
+        "hammerspoon"
+        "lua"
+      ]
+      "presentation.lua": [
+        "hammerspoon"
+        "lua"
+      ]
+      "statuslets.lua": [
+        "hammerspoon"
+        "lua"
+      ]
+      "textdisplay.lua": [
+        "hammerspoon"
+        "lua"
+      ]
+      "url_handling.lua": [
+        "hammerspoon"
+        "lua"
+      ]
+      # ~/.hammerspoon/plugins/mouse
+      "locator.lua": [
+        "hammerspoon"
+        "lua"
+      ]
+      # ~/.hammerspoon/plugins/windows
+      "grid.lua": [
+        "hammerspoon"
+        "lua"
+      ]
+      "manipulation.lua": [
+        "hammerspoon"
+        "lua"
+      ]
+      "screen_rotate.lua": [
+        "hammerspoon"
+        "lua"
+      ]
+  editor:
+    fontSize: 13
+    softWrap: true
+  "exception-reporting":
+    userId: "77cbe345-ba53-46fc-98ac-38214b62560d"
+  "linter-flake8": {}
+  "linter-ui-default":
+    showPanel: true
+  welcome:
+    showOnStartup: false
+  "which-key":
+    keystrokesFormat: "long"

@@ -1,16 +1,11 @@
 # Oh-my-Hammerspoon!
 
-## A configuration framework for [Hammerspoon](http://www.hammerspoon.org)
+This repository is a fork of Oh-my-Hammerspoon!
 
-[Hammerspoon](http://www.hammerspoon.org) is one of the most-used
-utilities on my Mac. This package allows you to manage "plugins" that
-can be enabled and configured independently.
+## A self-note on exploring this repository's code
+While tracing the code in these files (e.g. to see where `OMH_CONFIG` may be set to a non-empty value), try `grep -r "OMH_CONFIG" ~/.hammerspoon`.
 
-So far, Oh-my-Hammerspoon only contains plugins that I personally find
-useful or interesting, but please feel free to contribute both code
-and ideas.
-
-### Instructions
+## Instructions
 
 1. Check out this repository onto your `~/.hammerspoon` directory:
 
@@ -25,25 +20,101 @@ and ideas.
    of its source file, usually) for the available configuration
    parameters.
 
-### Functionality included
+## OMH Algorithm and Structure
+
+`init.lua` is loaded first. First `init.lua` loads `oh-my-hammerspoon.lua`, which loads `init-local.lua`. `init-local.lua` calls `omh_config`, which stores configuration values for use by load_plugins. `omh_go` is next called from `init.lua`. `omh_go` calls `load_plugins`. `load_plugins`, well, loads plugins (i.e. calls require on contents of `~/.hammerspoon/plugins`), overrides the default `mod.config` (i.e. the conifigurable values specified in each plugin file) before calling `mod.init`, and sets `omh.plugin_cache`. `mod.init` varies from plugin to plugin but usually sets keybindings (via `omh.bind`, see below) based on the (potentially custom) values stored in `mod.config`.
+
+The reason for init-local.lua is that it allows us to separate user configuration from default configuration. It also forces us to expose configuration options, rather than make users hunt through source code, provided there are no bugs.
+
+Note: plugin files have a general sturcture. A module table is returned at the end of each file. Functions are included as fields in this table if they are bound to keyboard shortcuts. If you create a new plugin module, make sure to follow this structure. For more on module structure, see [this tutorial](http://lua-users.org/wiki/ModulesTutorial). Note that any global variables (including functions) are accessible from the plugin files. Be careful to use local variables in these files as much as possible.
+
+It's not totally clear why modifying package.path at the start of `oh-my-hammerspoon.lua` allows for loading `.lua` files in subdirectories of `./hammerspoon` with require("subdirectory.luafileprefix"). [This link](http://lua-users.org/wiki/LuaModuleFunctionCritiqued) hints that it may be a result of hammerspoon using `module()`, but I don't know enough Lua to comment. I just know that it works.
+
+## List of other core constants, variables, and functions used across multiple files
+
+### Constants/objects
+`hostname`
+
+`logger`: instantiation of `hs.logger`
+
+`hs_config_dir`: usually equal to `~/.hammerspoon`
+
+`omh.plugin_cache`: list of loaded plugins
+
+`mod.config` (local): list of plugin-specific configurations
+
+### User Functions
+`omh.capture`: Captures input-command output. Consider replacing with built-ins, hs.getConsole or hs.task.
+```
+function omh.bind(keyspec, fun)
+   hs.hotkey.bind(keyspec[1], keyspec[2], fun)
+end
+```
+
+### Useful built-in functions
+`hs.fnutils`: contains helper functions for general use
+
+`hs.fnutils.each(hs.application.runningApplications(), function(app) print(app:title()) end)`: list names, as used in hs, of running applications. The names returned can be used, e.g. in hs.appfinder.appFromName.
+
+## Notes on the Lua language
+
+### Conditionals
+
+If you see variables or functions in a conditional, the conditional body will evaluate so long as the condition doesn't evaluate to `nil` or `false` (`0` WILL trigger the body).
+
+### Scope
+
+Lua 4 seems to have used limited scope, whereby upvalues required a % to access and were read-only. Since Hammerspoon is a fork of Mjolnir, it seems to use at least Lua 5.2. Some of the functionality in OMH (i.e. accessing local variables external to a function) also indicates that the app uses at least Lua 5, and GitHub suggests it's 5.3.4 (see LuaSkin folder).
+
+Anyone familiar with scoping in R should be familiar with scoping in Lua 5. Scoping is lexical. Variables in functions, loops, and conditionals have their own scope (i.e. environment in R), which are ephemeral. Closures are possible. An example from the [lua-users Wiki](http://lua-users.org/wiki/ScopeTutorial):
+```
+local function f()
+  local v = 0
+  local function get()
+    return v
+  end
+  local function set(new_v)
+    v = new_v
+  end
+  return {get=get, set=set}
+end
+
+local t, u = f(), f()
+print(t.get()) --> 0
+print(u.get()) --> 0
+t.set(5)
+u.set(6)
+print(t.get()) --> 5
+print(u.get()) --> 6
+```
+"Since the two values returned by the two calls to f are independent, we can see that every time a function is called, it creates a new scope with new variables."
+
+You've probably noticed the `local` tag. In R, variables are evaluated wherever they are first found. For example, if a variable is evaluated within a function, by default R first looks within the function execution environment, then any enclosing environments (i.e. nested functions), and finally the global environment. When assigning values to a variable using `<-` or `=`, R always creates a local variable. In order to modify variables in parent/enclosing environments, the special `<<-` operator or the assign function must be used. To choose a specific environment, use the `eval` function. The idea of global variables isn't even necessary in R, but by convention we may talk about variables in the global environment--the last environment searched through lexical scoping rules.
+
+In contrast, in Lua variables must be declared local. When evaluating a variable, the innermost variable found will be assigned--same as R. If declaring/assinging a variable, unlike R, an outer variable will be overwritten unless the `local` tag is used. If both local and global variables have been declared with the same name at the same level, the later declaration overwrites the older one.
+
+To create a new scope without using a function, loop, or conditional, use `do ... end`.
+
+### Object types
+There are eight basic types in Lua: `nil`, `boolean`, `number`, `string`, `userdata`, `function`, `thread`, and `table`. Modules are loaded as tables. Type `hs` into the console and see what it shows you.
+
+## Functionality included
 
 This config has already replaced my use of the following apps:
 
-- [ClipMenu](http://www.clipmenu.com) - clipboard history, supporting
-  only text entries for now. See 
-  [clipboard.lua](plugins/misc/clipboard.lua).
+- [Breakaway](http://www.macupdate.com/app/mac/23361/breakaway) - automatically pause/unpause music when headphones are unplugged/replugged. Supports Spotify and iTunes at the moment. See [headphones_watcher.lua](plugins/audio/headphones_watcher.lua).
+
+- [ClipMenu](http://www.clipmenu.com) - clipboard history, supporting only text entries for now. See [clipboard.lua](plugins/misc/clipboard.lua).
   - `Shift-Cmd-v` shows the clipboard menu by default.
+
+
 - [Choosy](https://www.choosyosx.com) and other URL dispatchers -
   allows opening URLs in different applications depending on regular
   expression matching. Great if you use site-specific browsers created
   with [Epichrome](https://github.com/dmarmor/epichrome) or
   [Fluid](http://fluidapp.com). See
   [url_handling.lua](plugins/misc/url_handling.lua).
-- [Breakaway](http://www.macupdate.com/app/mac/23361/breakaway) -
-  automatically pause/unpause music when headphones are
-  unplugged/replugged. Supports Spotify and iTunes at the
-  moment. See
-  [headphones_watcher.lua](plugins/audio/headphones_watcher.lua).
+
 - [Spectacle](https://www.spectacleapp.com) - window
   manipulation. Only some shortcuts implemented, those that I use, but
   others should be easy to
@@ -67,23 +138,6 @@ This config has already replaced my use of the following apps:
 
 It additionally provides the following functionality:
 
-- "Universal Archive"
-  ([universal_archive.lua](plugins/apps/universal_archive.lua)) for
-  archiving the current item in different applications. At the moment
-  Evernote, Spark, Microsoft Outlook and Mail.app are supported. For
-  Evernote, you can set up multiple keybindings to file notes to
-  different notebooks.
-- Universal "send to OmniFocus"
-  ([universal_omnifocus.lua](plugins/apps/universal_omnifocus.lua))
-  for sending the current item to OmniFocus from different
-  applications - it supports execution of AppleScript files or
-  embedded code, Lua functions, and hard-coded support for certain
-  types of applications. Scripts for Microsoft Outlook, Mail.app and
-  Evernote are included under the [scripts/](scripts/) directory, and
-  built-in support for Chrome and Chrome-based apps (for example, SSBs
-  created using [https://github.com/dmarmor/epichrome](Epichrome)) by
-  using the `apptype="chromeapp"` parameter. You can add your own and
-  configure them in `init-local.lua`.
 - Screen rotation shortcuts
   ([screen_rotate.lua](plugins/windows/screen_rotate.lua)) allows
   quickly toggling the rotation of the screen. It supports multiple
@@ -105,15 +159,6 @@ It additionally provides the following functionality:
 - Skype mute/unmute ([skype_mute.lua](plugins/apps/skype_mute.lua))
   - `Ctrl-Alt-Cmd-Shift-v` mutes/unmutes Skype, regardless of whether
     it's the frontmost application.
-- Evernote automation ([evernote.lua](plugins/apps/evernote.lua]) for
-  automating certain actions within Evernote. Supported so far:
-  - Key binding for opening current note in separate window.
-    Configure in `open_note_key`.
-  - Key bindings for opening current note in a window and setting tags
-    (leaves the cursor in the tags field). Configure in `modifiers_for_tagging`
-    and `keys_for_open_and_tag`.
-  - Key bindings for tagging current note inline. Configure in `modifiers_for_tagging`
-    and `keys_for_inline_tagging`.
 - Install the Hammerspoon command line interface
   ([hammerspoon_install_cli.lua](plugins/apps/hammerspoon_install_cli.lua)).
 - Set up a keybinding (Cmd-Alt-Ctrl-y) to open/close the Hammerspoon

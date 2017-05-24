@@ -1,0 +1,250 @@
+[
+  {
+    "Constant" : [
+
+    ],
+    "submodules" : [
+
+    ],
+    "Function" : [
+
+    ],
+    "Variable" : [
+      {
+        "doc" : "Controls whether corners are drawn on all screens or just the primary screen. Defaults to true",
+        "stripped_doc" : [
+          "Controls whether corners are drawn on all screens or just the primary screen. Defaults to true"
+        ],
+        "parameters" : [
+
+        ],
+        "def" : "RoundedCorners.allScreens",
+        "notes" : [
+
+        ],
+        "signature" : "RoundedCorners.allScreens",
+        "type" : "Variable",
+        "returns" : [
+
+        ],
+        "name" : "allScreens",
+        "desc" : "Controls whether corners are drawn on all screens or just the primary screen. Defaults to true"
+      },
+      {
+        "doc" : "Controls the radius of the rounded corners, in points. Defaults to 6",
+        "stripped_doc" : [
+          "Controls the radius of the rounded corners, in points. Defaults to 6"
+        ],
+        "parameters" : [
+
+        ],
+        "def" : "RoundedCorners.radius",
+        "notes" : [
+
+        ],
+        "signature" : "RoundedCorners.radius",
+        "type" : "Variable",
+        "returns" : [
+
+        ],
+        "name" : "radius",
+        "desc" : "Controls the radius of the rounded corners, in points. Defaults to 6"
+      },
+      {
+        "doc" : "Controls which level of the screens the corners are drawn at. See `hs.canvas.windowLevels` for more information. Defaults to `screenSaver + 1`",
+        "stripped_doc" : [
+          "Controls which level of the screens the corners are drawn at. See `hs.canvas.windowLevels` for more information. Defaults to `screenSaver + 1`"
+        ],
+        "parameters" : [
+
+        ],
+        "def" : "RoundedCorners.level",
+        "notes" : [
+
+        ],
+        "signature" : "RoundedCorners.level",
+        "type" : "Variable",
+        "returns" : [
+
+        ],
+        "name" : "level",
+        "desc" : "Controls which level of the screens the corners are drawn at. See `hs.canvas.windowLevels` for more information. Defaults to `screenSaver + 1`"
+      }
+    ],
+    "stripped_doc" : [
+
+    ],
+    "desc" : "Give your screens rounded corners",
+    "Deprecated" : [
+
+    ],
+    "type" : "Module",
+    "Constructor" : [
+
+    ],
+    "doc" : "Give your screens rounded corners\n\nDownload: [https:\/\/github.com\/Hammerspoon\/Spoons\/raw\/master\/Spoons\/RoundedCorners.spoon.zip](https:\/\/github.com\/Hammerspoon\/Spoons\/raw\/master\/Spoons\/RoundedCorners.spoon.zip)",
+    "Field" : [
+
+    ],
+    "Command" : [
+
+    ],
+    "items" : [
+      {
+        "doc" : "Controls whether corners are drawn on all screens or just the primary screen. Defaults to true",
+        "stripped_doc" : [
+          "Controls whether corners are drawn on all screens or just the primary screen. Defaults to true"
+        ],
+        "parameters" : [
+
+        ],
+        "def" : "RoundedCorners.allScreens",
+        "notes" : [
+
+        ],
+        "signature" : "RoundedCorners.allScreens",
+        "type" : "Variable",
+        "returns" : [
+
+        ],
+        "name" : "allScreens",
+        "desc" : "Controls whether corners are drawn on all screens or just the primary screen. Defaults to true"
+      },
+      {
+        "doc" : "Controls which level of the screens the corners are drawn at. See `hs.canvas.windowLevels` for more information. Defaults to `screenSaver + 1`",
+        "stripped_doc" : [
+          "Controls which level of the screens the corners are drawn at. See `hs.canvas.windowLevels` for more information. Defaults to `screenSaver + 1`"
+        ],
+        "parameters" : [
+
+        ],
+        "def" : "RoundedCorners.level",
+        "notes" : [
+
+        ],
+        "signature" : "RoundedCorners.level",
+        "type" : "Variable",
+        "returns" : [
+
+        ],
+        "name" : "level",
+        "desc" : "Controls which level of the screens the corners are drawn at. See `hs.canvas.windowLevels` for more information. Defaults to `screenSaver + 1`"
+      },
+      {
+        "doc" : "Controls the radius of the rounded corners, in points. Defaults to 6",
+        "stripped_doc" : [
+          "Controls the radius of the rounded corners, in points. Defaults to 6"
+        ],
+        "parameters" : [
+
+        ],
+        "def" : "RoundedCorners.radius",
+        "notes" : [
+
+        ],
+        "signature" : "RoundedCorners.radius",
+        "type" : "Variable",
+        "returns" : [
+
+        ],
+        "name" : "radius",
+        "desc" : "Controls the radius of the rounded corners, in points. Defaults to 6"
+      },
+      {
+        "doc" : "Starts RoundedCorners\n\nParameters:\n * None\n\nReturns:\n * The RoundedCorners object\n\nNotes:\n * This will draw the rounded screen corners and start watching for changes in screen sizes\/layouts, reacting accordingly",
+        "stripped_doc" : [
+          "Starts RoundedCorners",
+          ""
+        ],
+        "parameters" : [
+          " * None",
+          ""
+        ],
+        "def" : "RoundedCorners:start()",
+        "notes" : [
+          " * This will draw the rounded screen corners and start watching for changes in screen sizes\/layouts, reacting accordingly"
+        ],
+        "signature" : "RoundedCorners:start()",
+        "type" : "Method",
+        "returns" : [
+          " * The RoundedCorners object",
+          ""
+        ],
+        "name" : "start",
+        "desc" : "Starts RoundedCorners"
+      },
+      {
+        "doc" : "Stops RoundedCorners\n\nParameters:\n * None\n\nReturns:\n * The RoundedCorners object\n\nNotes:\n * This will remove all rounded screen corners and stop watching for changes in screen sizes\/layouts",
+        "stripped_doc" : [
+          "Stops RoundedCorners",
+          ""
+        ],
+        "parameters" : [
+          " * None",
+          ""
+        ],
+        "def" : "RoundedCorners:stop()",
+        "notes" : [
+          " * This will remove all rounded screen corners and stop watching for changes in screen sizes\/layouts"
+        ],
+        "signature" : "RoundedCorners:stop()",
+        "type" : "Method",
+        "returns" : [
+          " * The RoundedCorners object",
+          ""
+        ],
+        "name" : "stop",
+        "desc" : "Stops RoundedCorners"
+      }
+    ],
+    "Method" : [
+      {
+        "doc" : "Starts RoundedCorners\n\nParameters:\n * None\n\nReturns:\n * The RoundedCorners object\n\nNotes:\n * This will draw the rounded screen corners and start watching for changes in screen sizes\/layouts, reacting accordingly",
+        "stripped_doc" : [
+          "Starts RoundedCorners",
+          ""
+        ],
+        "parameters" : [
+          " * None",
+          ""
+        ],
+        "def" : "RoundedCorners:start()",
+        "notes" : [
+          " * This will draw the rounded screen corners and start watching for changes in screen sizes\/layouts, reacting accordingly"
+        ],
+        "signature" : "RoundedCorners:start()",
+        "type" : "Method",
+        "returns" : [
+          " * The RoundedCorners object",
+          ""
+        ],
+        "name" : "start",
+        "desc" : "Starts RoundedCorners"
+      },
+      {
+        "doc" : "Stops RoundedCorners\n\nParameters:\n * None\n\nReturns:\n * The RoundedCorners object\n\nNotes:\n * This will remove all rounded screen corners and stop watching for changes in screen sizes\/layouts",
+        "stripped_doc" : [
+          "Stops RoundedCorners",
+          ""
+        ],
+        "parameters" : [
+          " * None",
+          ""
+        ],
+        "def" : "RoundedCorners:stop()",
+        "notes" : [
+          " * This will remove all rounded screen corners and stop watching for changes in screen sizes\/layouts"
+        ],
+        "signature" : "RoundedCorners:stop()",
+        "type" : "Method",
+        "returns" : [
+          " * The RoundedCorners object",
+          ""
+        ],
+        "name" : "stop",
+        "desc" : "Stops RoundedCorners"
+      }
+    ],
+    "name" : "RoundedCorners"
+  }
+]

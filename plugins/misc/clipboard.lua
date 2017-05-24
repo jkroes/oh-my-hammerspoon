@@ -50,8 +50,8 @@ mod.selectorobj = nil
 mod.prevFocusedWindow = nil
 
 -- Don't change anything bellow this line
-local pasteboard = require("hs.pasteboard") -- http://www.hammerspoon.org/docs/hs.pasteboard.html
-local settings = require("hs.settings") -- http://www.hammerspoon.org/docs/hs.settings.html
+local pasteboard = require("hs.pasteboard") --
+local settings = require("hs.settings") --
 local last_change = pasteboard.changeCount() -- displays how many times the pasteboard owner has changed // Indicates a new copy has been made
 
 --Array to store the clipboard history

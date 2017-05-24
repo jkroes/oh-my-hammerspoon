@@ -120,7 +120,7 @@ end
 function toggleColorSamples(tablename, colortable)
    local screen = scr.mainScreen()
    local frame = screen:frame()
-   
+
    if swatches[tablename] ~= nil then  -- they are being displayed, remove them
       for i,color in ipairs(swatches[tablename]) do
          if indicators_shown then

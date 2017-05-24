@@ -2,7 +2,7 @@
 -- Sets Hammerspoon as the default browser for HTTP/HTTPS links, and
 -- dispatches them to different apps according to the patterns define
 -- in the config. If no pattern matches, `default_handler` is used.
-
+--[[
 local mod = {}
 
 mod.config = {
@@ -104,3 +104,4 @@ function mod.init()
 end
 
 return mod
+--]]
