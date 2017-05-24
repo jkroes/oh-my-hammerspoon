@@ -3,6 +3,7 @@ require("oh-my-hammerspoon")
 -- Load modules
 omh_go({
       "apps.hammerspoon_config_reload",
+      --"apps.windowtabs",
       "windows.manipulation",
       "windows.launch_apps",
       "windows.screen_rotate",

@@ -25,3 +25,7 @@ function winmod.init()
 end
 
 return winmod
+
+-- Alternative method with activate:
+-- http://thume.ca/2016/07/16/advanced-hackery-with-the-hammerspoon-window-manager/
+-- see second-to-last chunk that inserts table elements into definitions table before binding

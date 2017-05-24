@@ -28,7 +28,7 @@ tabs.maxTitle = 11
 
 local function realWindow(win)
   if win:title() == "Save" then return false end
-  -- AXScrollArea is weird role of special finder desktop window
+  -- AXScrollArea is weird role of special finder desktop window. see API, hs.window.desktop
   return (win:isStandard() and win:role() ~= "AXScrollArea")
 end
 
