@@ -65,7 +65,7 @@ omh_config("windows.launch_apps",
   {"i", "iTerm"}, -- not "iTerm2" for some reason
   {"2", "Calendar"},
   {"3", "Activity Monitor"},
-  {"1", "Gmail"},
+  {"1", "/Users/justinkroes/Applications/Gmail.app"},
   {"4", "Cheaters"},
   {"f", "Finder"}
 }) -- iTerm2 is currently SHIFT+ENTER to show/unshow
