@@ -89,6 +89,8 @@ print(u.get()) --> 6
 ```
 "Since the two values returned by the two calls to f are independent, we can see that every time a function is called, it creates a new scope with new variables."
 
+[See more examples](https://gist.github.com/jkroes/7b6f869653de9ceb402ecbc28db5256d)
+
 You've probably noticed the `local` tag. In R, variables are evaluated wherever they are first found. For example, if a variable is evaluated within a function, by default R first looks within the function execution environment, then any enclosing environments (i.e. nested functions), and finally the global environment. When assigning values to a variable using `<-` or `=`, R always creates a local variable. In order to modify variables in parent/enclosing environments, the special `<<-` operator or the assign function must be used. To choose a specific environment, use the `eval` function. The idea of global variables isn't even necessary in R, but by convention we may talk about variables in the global environment--the last environment searched through lexical scoping rules.
 
 In contrast, in Lua variables must be declared local. When evaluating a variable, the innermost variable found will be assigned--same as R. If declaring/assinging a variable, unlike R, an outer variable will be overwritten unless the `local` tag is used. If both local and global variables have been declared with the same name at the same level, the later declaration overwrites the older one.
