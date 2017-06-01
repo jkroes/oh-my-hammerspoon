@@ -3,7 +3,7 @@
 
 -- Hyper init
 hyper = hs.hotkey.modal.new()
-hyper_key = { {}, "f18"} -- mapped to caps lock by karabiner-elements
+hyper_key = { {}, "f13"} -- mapped to caps lock by karabiner-elements
 omh.bind(hyper_key, function() hyper:enter() end) --Bind hyper key to hyper mode
 
 -- Sequential hyper keys for windows.launch_apps
@@ -21,6 +21,16 @@ hyper:bind({}, hyper4_key, function() hyper4:enter() end)
 hyper5 = hs.hotkey.modal.new()
 hyper5_key = "t" -- thirds
 hyper:bind({}, hyper5_key, function() hyper5:enter() end)
+
+-- Sequential hyper keys for windows.launch_epichrome
+hyper6 = hs.hotkey.modal.new()
+hyper6_key = "w"
+hyper:bind({}, hyper6_key, function() hyper6:enter() end)
+
+-- Sequential hyper keys for windows.rough_cheatsheets
+hyper7 = hs.hotkey.modal.new()
+hyper7_key = "c"
+hyper:bind({}, hyper7_key, function() hyper7:enter() end)
 
 -- Plugin configuration
 omh_config("apps.hammerspoon_config_reload",
@@ -49,6 +59,7 @@ omh_config("windows.grid",
 
 -- Get a list of all running app names
 -- hs.fnutils.each(hs.application.runningApplications(), function(app) print(app:title()) end)
+-- Apparently we should use the actual app name as shown in finder, and an absolute path can also be used. Not the results of the code above...
 omh_config("windows.launch_apps",
 {
   {"g", "Google Chrome"},
@@ -62,13 +73,26 @@ omh_config("windows.launch_apps",
   {"w", "Microsoft Word"},
   {"e", "Microsoft Excel"},
   {"p", "Microsoft PowerPoint"},
-  {"i", "iTerm"}, -- not "iTerm2" for some reason
-  {"2", "Calendar"},
-  {"3", "Activity Monitor"},
-  {"1", "/Users/justinkroes/Applications/Gmail.app"},
-  {"4", "Cheaters"},
+  {"i", "iTerm"},
+  {"c", "Calendar"},
+  {"m", "Activity Monitor"},
   {"f", "Finder"}
 }) -- iTerm2 is currently SHIFT+ENTER to show/unshow
+
+omh_config("windows.launch_epichrome",
+{
+  {"g", "/Users/justinkroes/Applications/Gmail.app"},
+  {"h", "/Users/justinkroes/Applications/GitHub.app"},
+})
+
+omh_config("windows.rough_cheatsheets",
+{
+  path = "~/Documents/cheatsheets/",
+  git = {
+    key = "g",
+    --path = "~/Documents/cheatsheets/git/"
+  }
+})
 
 omh_config("windows.manipulation",
 {

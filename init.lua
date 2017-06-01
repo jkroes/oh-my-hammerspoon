@@ -6,6 +6,8 @@ omh_go({
       --"apps.windowtabs",
       "windows.manipulation",
       "windows.launch_apps",
+      "windows.launch_epichrome",
+      "windows.rough_cheatsheets",
       "windows.screen_rotate",
       --"windows.grid",
       --"mouse.locator",
