@@ -71,36 +71,40 @@ function enabled_hotkeys()
 end
 --enabled_hotkeys()
 
-function hyper_bind2toggle(parent, child, key, phrase, cheats)
+function bindModalKeys2ModeToggle(parent, child, key, phrase, cheats)
 
   function child:entered()
-    hs.notify.show('Hammerspoon',
-    'Entered ' .. phrase .. ' mode',
-    '')
+    --hs.notify.show('Hammerspoon', 'Entered ' .. phrase .. ' mode','')
+    print('Entered ' .. phrase .. ' mode', '')
   end
 
   -- prevent an exit call if already exited elsewhere
   function child:exited()
-    child.active = nil
-    hs.notify.show('Hammerspoon', 'Exited ' .. phrase .. ' mode', '')
+    --hs.notify.show('Hammerspoon', 'Exited ' .. phrase .. ' mode', '')
+    print('Exited ' .. phrase .. ' mode', '')
   end
 
   -- first keypress enters, second exits unless another modal action is taken
   -- e.g. succesfully launching an app, which is set to exit automatically
-  local function activate(mode)
-    if mode.active then mode:exit()
-    else mode.active = true; mode:enter()
-    end
+  local function hyperactive()
+    if hyper.active then
+      hs.fnutils.ieach(modes, function(element)
+        _G[element]:exit()
+      end)
+      hyper.active = nil
+      -- when exiting all modes, tailor notifications to say global exit or something
+      -- then make sure to set hyper.active = true in each script that successfully completes a mode. Right now you have to press hyper twice between each completion...
+    else hyper:enter(); hyper.active = true end
   end
 
-  if cheats then
-    parent:bind({}, key, function() child:enter() end)
-    child:bind({}, "Q", function() child:exit() end)
-  elseif child ~= parent then
-  -- bind children modes
-    parent:bind({}, key, function() activate(child) end)
-  -- bind HYPER key, which doesn't have a predecessor mode
-  else hs.hotkey.bind({}, key, function() activate(child) end)
+  if child ~= parent then
+    parent:bind({}, key, function() parent:exit(); child:enter() end)
+    if cheats then key = "Q" end
+    child:bind({}, key, function()
+      child:exit(); parent:enter()
+      if parent == "hyper" and hyper.active == false then hyper.active = true end
+    end)
+  else hs.hotkey.bind({}, key, function() hyperactive() end)
   end
 end
 -----------------------------------------
@@ -144,6 +148,7 @@ function repetitive_assignment(baseVar, vals, numVars, append, valsAreFuns)
     side_effects(expr)
     print(expr) -- helps to see what string is being loaded
   end
+  return vars
 end
 
 -------------------------

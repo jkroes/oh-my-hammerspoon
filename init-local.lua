@@ -16,7 +16,7 @@ rough_cheatsheets = {
   navkeys = {"a","s","d","f","g","h","j","k","l",";"},
   git = "g"
 } -- Note that variable names (aside from path and navkeys) are names of individual subdirectories on path
--- Because the navigation keys may conflict with the foldername keys (e.g. git = "g") and the foldername mode is the parent of the navigation mode, the same key originally would both open a cheatfile and exit the parent foldername mode. I've tweaked hyper_bind2toggle(), so that instead of pressing the same key to exit foldername mode, you press "Q", which takes you back to cheat mode, where you can specify a new foldername.
+-- Because the navigation keys may conflict with the foldername keys (e.g. git = "g") and the foldername mode is the parent of the navigation mode, the same key originally would both open a cheatfile and exit the parent foldername mode. I've tweaked bindModalKeys2ModeToggle(), so that instead of pressing the same key to exit foldername mode, you press "Q", which takes you back to cheat mode, where you can specify a new foldername.
 
 launch_epichrome = {
    {"g", "/Users/justinkroes/Applications/Gmail.app"},
@@ -24,21 +24,21 @@ launch_epichrome = {
 }
 
 launch_apps = {
-   {"g", "Google Chrome"},
-   {"z", "Zotero"},
-   {"a", "Atom"},
-   {"s", "Spotify"},
-   {"d", "Dash"},
-   {"h", "Hammerspoon"},
-   {"r", "RStudio"},
-   {"n", "nvALT"},
-   {"w", "Microsoft Word"},
-   {"e", "Microsoft Excel"},
-   {"p", "Microsoft PowerPoint"},
-   {"i", "iTerm"},
-   {"c", "Calendar"},
-   {"m", "Activity Monitor"},
-   {"f", "Finder"}
+  {"a", "Atom"},
+  {"c", "Calendar"},
+  {"d", "Dash"},
+  {"e", "Microsoft Excel"},
+  {"f", "Finder"},
+  {"g", "Google Chrome"},
+  {"h", "Hammerspoon"},
+  {"i", "iTerm"},
+  {"m", "Activity Monitor"},
+  {"n", "nvALT"},
+  {"p", "Microsoft PowerPoint"},
+  {"r", "RStudio"},
+  {"s", "Spotify"},
+  {"w", "Microsoft Word"},
+  {"z", "Zotero"},
 }
 -- Get a list of all running app names
 -- hs.fnutils.each(hs.application.runningApplications(), function(app) print(app:title()) end)
@@ -83,14 +83,14 @@ hyperKeys = {"f13","l","s","h","f19","e","t"}
 repetitive_assignment("hyper_key", hyperKeys,#hyperKeys, false, false)
 
 -- Sequential hyper keys for windows.launch_apps
-repetitive_assignment("hyper", "hs.hotkey.modal.new()", 7, true, true)
-hyper_bind2toggle(hyper, hyper, hyper_key, "HYPER")
-hyper_bind2toggle(hyper, hyper2, hyper2_key, "app launch")
-hyper_bind2toggle(hyper, hyper3, hyper3_key, "screen")
-hyper_bind2toggle(hyper, hyper4, hyper4_key, "halves")
-hyper_bind2toggle(hyper, hyper5, hyper5_key, "thirds")
-hyper_bind2toggle(hyper, hyper6, hyper6_key, "epichrome launch")
-hyper_bind2toggle(hyper, hyper7, hyper7_key, "cheaters", true)
+modes = repetitive_assignment("hyper", "hs.hotkey.modal.new()", 7, true, true)
+bindModalKeys2ModeToggle(hyper, hyper, hyper_key, "HYPER")
+bindModalKeys2ModeToggle(hyper, hyper2, hyper2_key, "app launch")
+bindModalKeys2ModeToggle(hyper, hyper3, hyper3_key, "screen")
+bindModalKeys2ModeToggle(hyper, hyper4, hyper4_key, "halves")
+bindModalKeys2ModeToggle(hyper, hyper5, hyper5_key, "thirds")
+bindModalKeys2ModeToggle(hyper, hyper6, hyper6_key, "epichrome launch")
+bindModalKeys2ModeToggle(hyper, hyper7, hyper7_key, "cheaters", true)
 
 -- Plugin initialization
 omh_config("apps.hammerspoon_config_reload", hammerspoon_config_reload)

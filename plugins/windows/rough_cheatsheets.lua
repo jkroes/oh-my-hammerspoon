@@ -21,7 +21,7 @@ function winmod.init()
   hs.fnutils.each(c,
   function(element)
     local hyper_local = hs.hotkey.modal.new() -- One modal hotkey per foldername specified in winmod.config
-    hyper_bind2toggle(hyper7, hyper_local, element, find(c,element), true)
+    bindModalKeys2ModeToggle(hyper7, hyper_local, element, find(c,element), true)
 
     local key = find(c,element)
     path = path .. key .. "/"
