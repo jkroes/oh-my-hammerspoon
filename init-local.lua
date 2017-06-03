@@ -78,19 +78,20 @@ screen_rotate = {
    rotated = { },
 }
 
--- Hyper configuration
+-- Hyper/child mode configuration
 hyperKeys = {"f13","l","s","h","f19","e","t"}
-repetitive_assignment("hyper_key", hyperKeys,#hyperKeys, false, false)
+hyperPhrase = {"HYPER", "app launch", "screen", "halves", "thirds", "epichrome launch", "cheaters"} -- "cheaters" is the only string that shouldn't be changed (see if-statement below)
 
--- Sequential hyper keys for windows.launch_apps
-modes = repetitive_assignment("hyper", "hs.hotkey.modal.new()", 7, true, true)
-bindModalKeys2ModeToggle(hyper, hyper, hyper_key, "HYPER")
-bindModalKeys2ModeToggle(hyper, hyper2, hyper2_key, "app launch")
-bindModalKeys2ModeToggle(hyper, hyper3, hyper3_key, "screen")
-bindModalKeys2ModeToggle(hyper, hyper4, hyper4_key, "halves")
-bindModalKeys2ModeToggle(hyper, hyper5, hyper5_key, "thirds")
-bindModalKeys2ModeToggle(hyper, hyper6, hyper6_key, "epichrome launch")
-bindModalKeys2ModeToggle(hyper, hyper7, hyper7_key, "cheaters", true)
+-- Create sequential modes
+-- Currently the user never sees the strings returned as the first modes and modal_keys elements, so it might be overkill to have assignment instead of table indices
+modal_keys = repetitive_assignment("hyper_key", hyperKeys, #hyperKeys, false, false)
+modes = repetitive_assignment("hyper", "hs.hotkey.modal.new()", #hyperKeys, true, true)
+modal_keys = queryGlobal(modal_keys)
+modes = queryGlobal(modes)
+
+for i=1,#hyperKeys do
+  bindModalKeys2ModeToggle(modes, modal_keys, i, hyperPhrase)
+end
 
 -- Plugin initialization
 omh_config("apps.hammerspoon_config_reload", hammerspoon_config_reload)
@@ -114,15 +115,3 @@ omh_config("apps.windowtabs",
     }
 })
 ]]
-
--- Condider using named arguments: https://www.lua.org/pil/5.3.html
---[[
-omh_config("windows.grid",
-           {
-             grid_key = { {"Ctrl", "Alt", "Cmd"}, "g"},
-             grid_geometries = {
-                                { "2x2" },
-                                --myscreen = hs.screen.mainScreen()
-                               }
-           })
---]]

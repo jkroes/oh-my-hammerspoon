@@ -30,10 +30,10 @@ end
 
 -- Reverse a list
 function reverseList(orig)
-  rev = {}
-  len = #orig+1
+  local rev = {}
+  local len = #orig+1
   for i,v in ipairs(orig) do
-    j = len-i
+    local j = len-i
     rev[j] = v
   end
   return rev
@@ -74,23 +74,29 @@ end
 
 -- Print enabled hotkeys to console
 function enabled_hotkeys()
-  x = deepcopy(hs.hotkey.getHotkeys())
+  local x = deepcopy(hs.hotkey.getHotkeys())
   hs.fnutils.ieach(x, function(element)
     for k,v in pairs(element) do if k ~= "idx" then element[k] = nil end end
     print(element.idx)
   end)
+  --print(hs.inspect(x))
 end
---enabled_hotkeys()
 
 -- First keypress enters, second exits, unless another modal action is taken
 -- e.g. succesfully launching an app, which is set to exit automatically
 -- Exception is hyper: second keypress exits all modes, including hyper
-local disabled
-function bindModalKeys2ModeToggle(parent, child, key, phrase, cheats)
+-- Second exception is cheats: its mode is exited with "Q", regardless of the key that enters cheat mode.
+
+function bindModalKeys2ModeToggle(modeTable, keyTable, idx, phraseTable, cheats)
+  local disabled
+  local parent = modeTable[1]
+  local child = modeTable[idx]
+  local key = keyTable[idx]
+  local phrase = phraseTable[idx]
 
   function child:entered()
       hs.notify.show('Hammerspoon', 'Entered ' .. phrase .. ' mode','')
-    print('Entered ' .. phrase .. ' mode', '')
+      print('Entered ' .. phrase .. ' mode', '')
   end
 
   function child:exited()
@@ -101,25 +107,28 @@ function bindModalKeys2ModeToggle(parent, child, key, phrase, cheats)
   end
 
   local function hyperactive()
-    if hyper.active then
-      hyper:exit() -- always display notificaiton for hyper exit
+    if child.active then
+      disabled = nil -- always display exit notificaiton for hyper
+      child:exit()
       disabled = true
       hs.fnutils.ieach(modes, function(element)
-        _G[element]:exit() -- currently exits all modes, even if they're inactive
+        element:exit() -- currently exits all modes, even if they're inactive
       end)
-      hyper.active = nil
-      -- then make sure to set hyper.active = true in each script that successfully completes a mode.
+      child.active = nil
+      -- then make sure to set hyper.active = true in each script that successfully completes a mode. use "Q" to exit foldermode in cheats.
       -- set information parameter of notifications to list of button options
-    else hyper:enter(); hyper.active = true; disabled = nil  end
+    else child:enter(); child.active = true  end
   end
 
   if child ~= parent then
+    disabled = true -- disable modal exit notifications
     parent:bind({}, key, function() parent:exit(); child:enter() end)
-    if cheats then key = "Q" end
     child:bind({}, key, function() child:exit(); parent:enter() end)
-  else hs.hotkey.bind({}, key, function() hyperactive() end)
+  else
+    hs.hotkey.bind({}, key, function() hyperactive(child) end)
   end
 end
+
 -- Execute string
 function side_effects(expression)
   -- Since return is nil, this function is only useful for modifying state (i.e. its side effects)
@@ -148,7 +157,7 @@ function insert_numbers(str, num1, num2, append)
   return x
 end
 
--- Create list of similarly named variables and assign a common value or a value with matching index in a value-table. Works for strings that represent function calls (valsAreFuns = true) and actual strings (valsAreFuns = false).
+-- Creates list of similarly named variables and assign a common value or a value with matching index in a value-table. Works for strings that represent function calls (valsAreFuns = true) and actual strings (valsAreFuns = false).
 function repetitive_assignment(baseVar, vals, numVars, append, valsAreFuns)
   local vars = insert_numbers(baseVar, 2, numVars, append)
   local val = vals
@@ -163,6 +172,13 @@ function repetitive_assignment(baseVar, vals, numVars, append, valsAreFuns)
     --print(expr) -- helps to see what string is being loaded
   end
   return vars
+end
+
+-- Accept list of global variables-as-strings and return values of variables
+function queryGlobal(orig)
+  local copy = deepcopy(orig)
+  for i,v in ipairs(copy) do copy[i] = _G[copy[i]] end
+  return copy
 end
 
 return omh
