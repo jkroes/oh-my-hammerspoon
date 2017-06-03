@@ -5,7 +5,6 @@ omh.plugin_cache={}
 local OMH_PLUGINS={}
 local OMH_CONFIG={}
 
--- Note that mod is a global variable that is continually overwritten, so the last package to be loaded will have its config and init fields stored in mod. Notice that each plugin file returns a table, typically named mod or, e.g., winmod. The name doesn't matter, because that table will be stored in mod below. 
 function load_plugins(plugins)
    plugins = plugins or {}
    for i,p in ipairs(plugins) do
@@ -18,14 +17,14 @@ function load_plugins(plugins)
      -- How to access this log? -JK
       logger.df("Loading plugin %s", plugin)
       -- First, load the plugin
-      mod = require(plugin)
+      local mod = require(plugin)
       -- If it returns a table (like a proper module should), then
       -- we may be able to access additional functionality
       if type(mod) == "table" then
          -- If the user has specified some config parameters, merge
          -- them with the module's 'config' element (creating it
          -- if it doesn't exist)
-         if OMH_CONFIG[plugin] ~= nil then --Value is set in omh_config() below, and this function is called in init-local-sample.lua, where plugin configuration apparently takes place.
+         if OMH_CONFIG[plugin] ~= nil then --Value is set in omh_config() below, and this function is called in init-local.lua, where plugin configuration takes place.
            -- Prep mod.config for table indexing in for loop below
             if mod.config == nil then
                mod.config = {}
@@ -57,13 +56,9 @@ function omh_config(name, config)
    OMH_CONFIG[name]=config
 end
 
--- Load and configure the plugins
-function omh_go(plugins)
-   load_plugins(plugins)
-end
-
 -- Load local code if it exists
 local status, err = pcall(function() require("init-local") end)
+
 if not status then
    -- A 'no file' error is OK, but anything else needs to be reported
    if string.find(err, 'no file') == nil then

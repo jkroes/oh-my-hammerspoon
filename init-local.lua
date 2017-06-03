@@ -3,7 +3,7 @@
 
 -- Plugin configuration
 hammerspoon_config_reload = {
-  auto_reload = false,
+  auto_reload = true,
   manual_reload_key = {{"cmd", "alt", "ctrl"}, "z"}
 }
 headphones_watcher = {
@@ -80,18 +80,20 @@ screen_rotate = {
 
 -- Hyper/child mode configuration
 hyperKeys = {"f13","l","s","h","f19","e","t"}
-hyperPhrase = {"HYPER", "app launch", "screen", "halves", "thirds", "epichrome launch", "cheaters"} -- "cheaters" is the only string that shouldn't be changed (see if-statement below)
-
+hyperPhrase = {"HYPER", "app launch", "screen", "halves", "thirds", "epichrome launch", "cheaters"}
 -- Create sequential modes
 -- Currently the user never sees the strings returned as the first modes and modal_keys elements, so it might be overkill to have assignment instead of table indices
-modal_keys = repetitive_assignment("hyper_key", hyperKeys, #hyperKeys, false, false)
-modes = repetitive_assignment("hyper", "hs.hotkey.modal.new()", #hyperKeys, true, true)
-modal_keys = queryGlobal(modal_keys)
-modes = queryGlobal(modes)
+modal_keys = omh.assignment("hyper_key", hyperKeys, #hyperKeys, false, false)
+modes = omh.assignment("hyper", "hs.hotkey.modal.new()", #hyperKeys, true, true)
+omh.modal_keys = omh.queryGlobal(modal_keys)
+omh.modes = omh.queryGlobal(modes)
 
 for i=1,#hyperKeys do
-  bindModalKeys2ModeToggle(modes, modal_keys, i, hyperPhrase)
+  omh.bindModalKeys2ModeToggle(omh.modes, omh.modal_keys, i, hyperPhrase)
 end
+
+-- then make sure to set hyper.active = nil in each script that successfully completes a mode and exits hyper. use "Q" to exit foldermode in cheats.
+-- set information parameter of notifications to list of button options
 
 -- Plugin initialization
 omh_config("apps.hammerspoon_config_reload", hammerspoon_config_reload)

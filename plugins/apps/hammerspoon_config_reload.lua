@@ -11,7 +11,8 @@ mod.config = {
 
 -- Automatic config reload if any files in ~/.hammerspoon change
 function reloadConfig(files)
-   doReload = false
+   local doReload = false
+   x = 2
    for _,file in pairs(files) do
       if file:sub(-4) == ".lua" and (not string.match(file, '/[.]#')) then
          logger.df("Changed file = %s", file)

@@ -12,17 +12,32 @@ While tracing the code in these files (e.g. to see where `OMH_CONFIG` may be set
    ```
    git clone https://github.com/zzamboni/oh-my-hammerspoon.git ~/.hammerspoon
    ```
-2. Edit `init.lua` to enable/disable the plugins you want (at the
-   moment they are all enabled by default).
-3. Copy `init-local-sample.lua` to `init-local.lua` and modify to
-   change plugin configuration parameters or add your own arbitrary
-   code. Refer to the configuration block of each plugin (near the top
-   of its source file, usually) for the available configuration
-   parameters.
+2. Edit `init.lua` to enable/disable the plugins you want (at the moment they are all enabled by default).
+3. Modify `init-local.lua` to change plugin configuration parameters. Refer to the configuration block of each plugin (near the top of its source file, usually) for the available configuration parameters, or at the very least proper syntax (plugins that deal with specific applications are infinitely customizable).
 
 ## OMH Algorithm and Structure
 
-`init.lua` is loaded first. First `init.lua` loads `oh-my-hammerspoon.lua`, which loads `init-local.lua`. `init-local.lua` calls `omh_config`, which stores configuration values for use by load_plugins. `omh_go` is next called from `init.lua`. `omh_go` calls `load_plugins`. `load_plugins`, well, loads plugins (i.e. calls require on contents of `~/.hammerspoon/plugins`), overrides the default `mod.config` (i.e. the conifigurable values specified in each plugin file) before calling `mod.init`, and sets `omh.plugin_cache`. `mod.init` varies from plugin to plugin but usually sets keybindings (via `omh.bind`, see below) based on the (potentially custom) values stored in `mod.config`.
+`init.lua`: First file to load. Loads plugins.
+- Require `oh-my-hammerspoon.lua`.
+- Call `load_plugins`.
+-
+`oh-my-hammerspoon.lua`: Loads library of OMH development functions. Defines plugin loader to override defaults for each plugin, based on user configuration. Requires configuration file.
+
+NOTE: Because 2 functions are defined herein that are called by other files, these functions are currently global. The code will be refactored later to return tables from `init-local.lua` to this file, and from this file to `init.lua`.
+
+- Require `omh-lib.lua`.
+- Define `load_plugins`. Requires each plugin file and stores results in table (`mod`). Overwrites table's default configuration (`mod.config`) based on return value of `omh_config()`. Runs plugin code by calling initalization function from each plugin file
+- Define `omh_config`. Though called from  a different file, this function stores results in this file's local variable (`OMH_CONFIG`) that `load_plugins` uses to overwrite default configuration.
+- Require `init-local.lua`.
+
+`omh-lib.lua`: OMH library functions. Defines global `omh` object that all files can access\-\- because of how early in the process it is required\-\-thus avoiding global variable references.
+
+`init-local.lua`: Define user configurations for overwriting configuration plugin tables.
+- Call `omh_config()`. This makes user configurations visible to the plugin loader in `oh-my-hammerspoon.lua`.
+
+`Plugin files` (i.e. `~/.hammerspoon/plugins/*`): Each plugin returns an object, which includes an initialization function that is called when the plugin is loaded and a configuration table that may be overwritten in `init-local.lua`. Init functions vary from plugin to plugin but usually sets keybindings based on the values stored in a configuration table.
+
+**Keep in mind that any global variables in one file will be visible from files that require the first file, and files that require the file that requires the first file, and so on; however, local variables in a required file will not be visible from the files calling require. To minimize risk, use a single global table (`omh`) to store variables that would otherwise be global.**
 
 The reason for init-local.lua is that it allows us to separate user configuration from default configuration. It also forces us to expose configuration options, rather than make users hunt through source code, provided there are no bugs.
 

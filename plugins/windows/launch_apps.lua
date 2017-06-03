@@ -12,14 +12,17 @@ function winmod.init()
   -- Launch and focus apps
   local c = winmod.config
 
-  hs.fnutils.ieach(c,
-  function(element)
-    hyper2:bind({}, element[1],
-    function()
-      hs.application.launchOrFocus(element[2])
-      hyper2:exit() -- must include an exit statement for every binding!!!
-      hyper:exit()
-    end)
+  -- hs.fnutils.ieach(c,
+  -- function(element)
+  --   hyper2:bind({}, element[1],
+  --   function()
+  --     hs.application.launchOrFocus(element[2])
+  --     hyper:exit()
+  --   end)
+  -- end)
+
+  omh.bindKeys2Mode(omh.modes, 2, c, function(x)
+    hs.application.launchOrFocus(x)
   end)
 
 end
