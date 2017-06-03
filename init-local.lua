@@ -1,101 +1,50 @@
 -- Uncomment to set non-default log level
 -- logger.setLogLevel('debug')
 
--- Hyper init
-hyper = hs.hotkey.modal.new()
-hyper_key = { {}, "f13"} -- mapped to caps lock by karabiner-elements
-omh.bind(hyper_key, function() hyper:enter() end) --Bind hyper key to hyper mode
-
--- Sequential hyper keys for windows.launch_apps
-hyper2 = hs.hotkey.modal.new()
-hyper2_key = "l"
-hyper:bind({}, hyper2_key, function() hyper2:enter() end)
-
--- Sequential hyper keys for windows.manipulation
-hyper3 = hs.hotkey.modal.new()
-hyper3_key = "s" -- move between screens
-hyper:bind({}, hyper3_key, function() hyper3:enter() end)
-hyper4 = hs.hotkey.modal.new()
-hyper4_key = "h" -- halves
-hyper:bind({}, hyper4_key, function() hyper4:enter() end)
-hyper5 = hs.hotkey.modal.new()
-hyper5_key = "t" -- thirds
-hyper:bind({}, hyper5_key, function() hyper5:enter() end)
-
--- Sequential hyper keys for windows.launch_epichrome
-hyper6 = hs.hotkey.modal.new()
-hyper6_key = "w"
-hyper:bind({}, hyper6_key, function() hyper6:enter() end)
-
--- Sequential hyper keys for windows.rough_cheatsheets
-hyper7 = hs.hotkey.modal.new()
-hyper7_key = "c"
-hyper:bind({}, hyper7_key, function() hyper7:enter() end)
-
 -- Plugin configuration
-omh_config("apps.hammerspoon_config_reload",
-           {
-             auto_reload = false,
-             manual_reload_key = {{"cmd", "alt", "ctrl"}, "z"}
-           })
+hammerspoon_config_reload = {
+  auto_reload = false,
+  manual_reload_key = {{"cmd", "alt", "ctrl"}, "z"}
+}
+headphones_watcher = {
+   control_spotify = true,
+   control_itunes  = false
+}
 
-omh_config("audio.headphones_watcher",
-           {
-             control_spotify = true,
-             control_itunes  = false,
-           })
+rough_cheatsheets = {
+  path = "~/Documents/cheatsheets/",
+  navkeys = {"a","s","d","f","g","h","j","k","l",";"},
+  git = "g"
+} -- Note that variable names (aside from path and navkeys) are names of individual subdirectories on path
+-- Because the navigation keys may conflict with the foldername keys (e.g. git = "g") and the foldername mode is the parent of the navigation mode, the same key originally would both open a cheatfile and exit the parent foldername mode. I've tweaked hyper_bind2toggle(), so that instead of pressing the same key to exit foldername mode, you press "Q", which takes you back to cheat mode, where you can specify a new foldername.
 
--- Condider using named arguments: https://www.lua.org/pil/5.3.html
---[[
-omh_config("windows.grid",
-           {
-             grid_key = { {"Ctrl", "Alt", "Cmd"}, "g"},
-             grid_geometries = {
-                                { "2x2" },
-                                --myscreen = hs.screen.mainScreen()
-                               }
-           })
---]]
+launch_epichrome = {
+   {"g", "/Users/justinkroes/Applications/Gmail.app"},
+   {"h", "/Users/justinkroes/Applications/GitHub.app"},
+}
 
+launch_apps = {
+   {"g", "Google Chrome"},
+   {"z", "Zotero"},
+   {"a", "Atom"},
+   {"s", "Spotify"},
+   {"d", "Dash"},
+   {"h", "Hammerspoon"},
+   {"r", "RStudio"},
+   {"n", "nvALT"},
+   {"w", "Microsoft Word"},
+   {"e", "Microsoft Excel"},
+   {"p", "Microsoft PowerPoint"},
+   {"i", "iTerm"},
+   {"c", "Calendar"},
+   {"m", "Activity Monitor"},
+   {"f", "Finder"}
+}
 -- Get a list of all running app names
 -- hs.fnutils.each(hs.application.runningApplications(), function(app) print(app:title()) end)
 -- Apparently we should use the actual app name as shown in finder, and an absolute path can also be used. Not the results of the code above...
-omh_config("windows.launch_apps",
-{
-  {"g", "Google Chrome"},
-  {"z", "Zotero"},
-  {"a", "Atom"},
-  {"s", "Spotify"},
-  {"d", "Dash"},
-  {"h", "Hammerspoon"},
-  {"r", "RStudio"},
-  {"n", "nvALT"},
-  {"w", "Microsoft Word"},
-  {"e", "Microsoft Excel"},
-  {"p", "Microsoft PowerPoint"},
-  {"i", "iTerm"},
-  {"c", "Calendar"},
-  {"m", "Activity Monitor"},
-  {"f", "Finder"}
-}) -- iTerm2 is currently SHIFT+ENTER to show/unshow
 
-omh_config("windows.launch_epichrome",
-{
-  {"g", "/Users/justinkroes/Applications/Gmail.app"},
-  {"h", "/Users/justinkroes/Applications/GitHub.app"},
-})
-
-omh_config("windows.rough_cheatsheets",
-{
-  path = "~/Documents/cheatsheets/",
-  git = {
-    key = "g",
-    --path = "~/Documents/cheatsheets/git/"
-  }
-})
-
-omh_config("windows.manipulation",
-{
+manipulation = {
   maximize = "m",
   screens = {
     screen_right = "l",
@@ -113,10 +62,9 @@ omh_config("windows.manipulation",
     third_up = "i",
     third_down = "m"
   },
-})
+}
 
-omh_config("windows.screen_rotate",
-{
+screen_rotate = {
    toggle_rotate_modifier = { "Ctrl", "Cmd", "Alt"},
    toggle_rotate_keys = {
       [".*"] = "f15"
@@ -128,8 +76,32 @@ omh_config("windows.screen_rotate",
    screens_to_skip = { "Color LCD" },
    rotating_angles = { 0, 90 }, -- normal, rotated
    rotated = { },
-})
+}
 
+-- Hyper configuration
+hyperKeys = {"f13","l","s","h","f19","e","t"}
+repetitive_assignment("hyper_key", hyperKeys,#hyperKeys, false, false)
+
+-- Sequential hyper keys for windows.launch_apps
+repetitive_assignment("hyper", "hs.hotkey.modal.new()", 7, true, true)
+hyper_bind2toggle(hyper, hyper, hyper_key, "HYPER")
+hyper_bind2toggle(hyper, hyper2, hyper2_key, "app launch")
+hyper_bind2toggle(hyper, hyper3, hyper3_key, "screen")
+hyper_bind2toggle(hyper, hyper4, hyper4_key, "halves")
+hyper_bind2toggle(hyper, hyper5, hyper5_key, "thirds")
+hyper_bind2toggle(hyper, hyper6, hyper6_key, "epichrome launch")
+hyper_bind2toggle(hyper, hyper7, hyper7_key, "cheaters")
+
+-- Plugin initialization
+omh_config("apps.hammerspoon_config_reload", hammerspoon_config_reload)
+omh_config("audio.headphones_watcher", headphones_watcher)
+omh_config("windows.launch_epichrome",launch_epichrome)
+omh_config("windows.launch_apps", launch_apps)
+omh_config("windows.rough_cheatsheets", rough_cheatsheets)
+omh_config("windows.manipulation", manipulation)
+omh_config("windows.screen_rotate", screen_rotate)
+
+-- Note: old syntax below. Easily refactored.
 -- Full screen Chrome is crashing. Need to read source code for clue why.
 --[[
 omh_config("apps.windowtabs",
@@ -142,3 +114,15 @@ omh_config("apps.windowtabs",
     }
 })
 ]]
+
+-- Condider using named arguments: https://www.lua.org/pil/5.3.html
+--[[
+omh_config("windows.grid",
+           {
+             grid_key = { {"Ctrl", "Alt", "Cmd"}, "g"},
+             grid_geometries = {
+                                { "2x2" },
+                                --myscreen = hs.screen.mainScreen()
+                               }
+           })
+--]]

@@ -5,46 +5,37 @@ local winmod = {}
 
 winmod.config = {
   path = "~/Documents/cheatsheets/",
-  git = {
-    key = "g",
-  }
+  navkeys = {"a","s","d","f","g","h","j","k","l",";"},
+  git = "g"
 }
 
 --- Initialize the module
-hypertable = {} -- may not need to be global. Spent hours debugging only to realize I used numbers instead of strings as a keybinding and that was tanking the script.
 
 function winmod.init()
   local c = winmod.config
   local path = c.path
+  local navkeys = c.navkeys
   c.path = nil -- allow easy looping
+  c.navkeys = nil
 
   hs.fnutils.each(c,
   function(element)
+    local hyper_local = hs.hotkey.modal.new() -- One modal hotkey per foldername specified in winmod.config
+    hyper_bind2toggle(hyper7, hyper_local, element, find(c,element), true)
+
     local key = find(c,element)
-    hypertable[key] = hs.hotkey.modal.new()
-    local hyper_local = hypertable[key]
-    hyper7:bind({}, element.key, function()
-      hyper_local:enter()
-    end)
-
     path = path .. key .. "/"
-    local files = {}
-    local filestring = hs.execute("ls -1 " .. path .. " | grep -v '.md'")
-    for file in string.gmatch(filestring, "[%a%.%d_]+") do
-      table.insert(files,file)
-    end
+    files = listcheatfiles(path) -- Directories are assumed to have .pdf,.png, and/or .md, and the latter are ignored. Files are assumed to be named with letters, numbers, and/or underscores.
 
-
-    --local numfiles = hs.execute("ls -1 " .. element.path .. " | grep -v '.md' | wc -l")
     local numfiles = #files
     for i = 1,numfiles do
-      hyper_local:bind({}, string.format(i),
+      --hyper_local:bind({}, string.format(i),
+      hyper_local:bind({},navkeys[i],
       function()
-        ----hs.execute("open " .. element.path .. "/Diagram1.png")
         hs.execute("open " .. path .. files[i])
-        print("open " .. path .. files[i])
+        --print("open " .. path .. files[i])
         hyper_local:exit()
-        hyper7:exit() -- must include an exit statement for every binding!!!
+        hyper7:exit()
         hyper:exit()
       end)
     end
@@ -52,3 +43,8 @@ function winmod.init()
 end
 
 return winmod
+
+--TODO: Show available shortcuts or at least cheat titles in a window when the mode is entered, likely via hs.notify.show's information parameter.
+
+--Make pressing those letters quit the cheatsheet, rather than cmd-q to make things easier on you. Make listcheatfiles() accept a pattern, i.e. :exit() when letter is pressed using hs.eventtapc
+-- Create a pop up window that shows mapping from numbers to particular cheatsheets

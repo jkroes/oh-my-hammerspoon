@@ -152,7 +152,7 @@ function winmod.init()
   local h = winmod.config.halves
   local t = winmod.config.thirds
 
-  hyper:bind({}, winmod.config.maximize,
+  hyper:bind({}, m,
   function()
     winmod.resizeCurrentWindow(find(c,m))
     hyper:exit()
