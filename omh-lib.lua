@@ -3,14 +3,13 @@ omh={}
 -- Some useful global variables
 hostname = hs.host.localizedName()
 logger = hs.logger.new('oh-my-hs')
-hs_config_dir = hs.configdir
+hs_config_dir = hs.configdir -- Need to replace all omh occurrences with hs.config.dir
 --hs_config_dir = os.getenv("HOME") .. "/.hammerspoon/"
 
 -- Display a notification
 function notify(title, message)
    hs.notify.new({title=title, informativeText=message}):send()
 end
-
 
 -- From http://lua-users.org/wiki/CopyTable
 -- Copy a table recursively
@@ -29,6 +28,16 @@ function deepcopy(orig)
     return copy
 end
 
+-- Reverse a list
+function reverseList(orig)
+  rev = {}
+  len = #orig+1
+  for i,v in ipairs(orig) do
+    j = len-i
+    rev[j] = v
+  end
+  return rev
+end
 
 -- Return the sorted keys of a table
 function sortedkeys(tab)
@@ -38,6 +47,7 @@ function sortedkeys(tab)
    table.sort(keys)
    return keys
 end
+
 
 -- Return table key based on value. !!!Note that this will only return one binding, even if multiple keys lead to the same value.!!!
 function find(tbl, val)
@@ -62,6 +72,7 @@ function omh.bind(keyspec, fun)
    hs.hotkey.bind(keyspec[1], keyspec[2], fun)
 end
 
+-- Print enabled hotkeys to console
 function enabled_hotkeys()
   x = deepcopy(hs.hotkey.getHotkeys())
   hs.fnutils.ieach(x, function(element)
@@ -71,56 +82,59 @@ function enabled_hotkeys()
 end
 --enabled_hotkeys()
 
+-- First keypress enters, second exits, unless another modal action is taken
+-- e.g. succesfully launching an app, which is set to exit automatically
+-- Exception is hyper: second keypress exits all modes, including hyper
+local disabled
 function bindModalKeys2ModeToggle(parent, child, key, phrase, cheats)
 
   function child:entered()
-    --hs.notify.show('Hammerspoon', 'Entered ' .. phrase .. ' mode','')
+      hs.notify.show('Hammerspoon', 'Entered ' .. phrase .. ' mode','')
     print('Entered ' .. phrase .. ' mode', '')
   end
 
-  -- prevent an exit call if already exited elsewhere
   function child:exited()
-    --hs.notify.show('Hammerspoon', 'Exited ' .. phrase .. ' mode', '')
-    print('Exited ' .. phrase .. ' mode', '')
+    if not disabled then
+      hs.notify.show('Hammerspoon', 'Exited ' .. phrase .. ' mode', '')
+      print('Exited ' .. phrase .. ' mode', '')
+    end
   end
 
-  -- first keypress enters, second exits unless another modal action is taken
-  -- e.g. succesfully launching an app, which is set to exit automatically
   local function hyperactive()
     if hyper.active then
+      hyper:exit() -- always display notificaiton for hyper exit
+      disabled = true
       hs.fnutils.ieach(modes, function(element)
-        _G[element]:exit()
+        _G[element]:exit() -- currently exits all modes, even if they're inactive
       end)
       hyper.active = nil
-      -- when exiting all modes, tailor notifications to say global exit or something
-      -- then make sure to set hyper.active = true in each script that successfully completes a mode. Right now you have to press hyper twice between each completion...
-    else hyper:enter(); hyper.active = true end
+      -- then make sure to set hyper.active = true in each script that successfully completes a mode.
+      -- set information parameter of notifications to list of button options
+    else hyper:enter(); hyper.active = true; disabled = nil  end
   end
 
   if child ~= parent then
     parent:bind({}, key, function() parent:exit(); child:enter() end)
     if cheats then key = "Q" end
-    child:bind({}, key, function()
-      child:exit(); parent:enter()
-      if parent == "hyper" and hyper.active == false then hyper.active = true end
-    end)
+    child:bind({}, key, function() child:exit(); parent:enter() end)
   else hs.hotkey.bind({}, key, function() hyperactive() end)
   end
 end
------------------------------------------
+-- Execute string
 function side_effects(expression)
   -- Since return is nil, this function is only useful for modifying state (i.e. its side effects)
   local x = load(expression)
   x()
 end
 
+-- Append number, either at at the end of a basename variable (append = true), or before the underscore in a name that consists only of letters separarted by an underscore (append = false)
 function insert_numbers(str, num1, num2, append)
   local x = {str}
   if append then
     for i = num1,num2 do
       table.insert(x, str..i)
     end
-  else --insert on left side of underscore; assumes word is only letters and underscore
+  else
     for i = num1,num2 do
       local prefix = string.match(str,"%a+")
       local suffix = string.match(str,"_%a+")
@@ -134,7 +148,7 @@ function insert_numbers(str, num1, num2, append)
   return x
 end
 
--- Use when you only want variables to differ in name by a numeric suffix, either appended at the end of a basename variable (append = true), or before the underscore in a name that consists only of letters separarted by an underscore (append = false). Works for strings that represent functions (valsAreFuns = true) and actual strings (valsAreFuns = false).
+-- Create list of similarly named variables and assign a common value or a value with matching index in a value-table. Works for strings that represent function calls (valsAreFuns = true) and actual strings (valsAreFuns = false).
 function repetitive_assignment(baseVar, vals, numVars, append, valsAreFuns)
   local vars = insert_numbers(baseVar, 2, numVars, append)
   local val = vals
@@ -146,11 +160,9 @@ function repetitive_assignment(baseVar, vals, numVars, append, valsAreFuns)
     else expr = var..'='.."\""..val.."\""
     end
     side_effects(expr)
-    print(expr) -- helps to see what string is being loaded
+    --print(expr) -- helps to see what string is being loaded
   end
   return vars
 end
-
--------------------------
 
 return omh
