@@ -45,6 +45,3 @@ end
 return winmod
 
 --TODO: Show available shortcuts or at least cheat titles in a window when the mode is entered, likely via hs.notify.show's information parameter.
-
---Make pressing those letters quit the cheatsheet, rather than cmd-q to make things easier on you. Make listcheatfiles() accept a pattern, i.e. :exit() when letter is pressed using hs.eventtapc
--- Create a pop up window that shows mapping from numbers to particular cheatsheets

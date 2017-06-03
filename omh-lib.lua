@@ -11,20 +11,24 @@ function notify(title, message)
    hs.notify.new({title=title, informativeText=message}):send()
 end
 
--- Algorithm to choose whether white/black as the most contrasting to a given
--- color, from http://gamedev.stackexchange.com/a/38561/73496
---[[
-function chooseContrastingColor(c)
-   local L = 0.2126*(c.red*c.red) + 0.7152*(c.green*c.green) + 0.0722*(c.blue*c.blue)
-   local black = { ["red"]=0.000,["green"]=0.000,["blue"]=0.000,["alpha"]=1 }
-   local white = { ["red"]=1.000,["green"]=1.000,["blue"]=1.000,["alpha"]=1 }
-   if L>0.5 then
-      return black
-   else
-      return white
-   end
+
+-- From http://lua-users.org/wiki/CopyTable
+-- Copy a table recursively
+function deepcopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[deepcopy(orig_key)] = deepcopy(orig_value)
+        end
+        setmetatable(copy, deepcopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
 end
---]]
+
 
 -- Return the sorted keys of a table
 function sortedkeys(tab)
@@ -35,8 +39,7 @@ function sortedkeys(tab)
    return keys
 end
 
--- Return table key based on value. Note that this will only return one binding, even if multiple keys can lead to the same value.
-
+-- Return table key based on value. !!!Note that this will only return one binding, even if multiple keys lead to the same value.!!!
 function find(tbl, val)
     for k, v in pairs(tbl) do
         if v == val then return k end
@@ -59,14 +62,21 @@ function omh.bind(keyspec, fun)
    hs.hotkey.bind(keyspec[1], keyspec[2], fun)
 end
 
--- From Hammerspoon's hs.hotkey.modal API:
--- "This method [enter()] will enable all of the hotkeys defined in the modal state via hs.hotkey.modal:bind(), and disable the hotkey that entered the modal state (if one was defined) [e.g. a parent mode]."
--- Likewise, exit() disables hotkeys for the current modal state and reenables the parent hotkey or parent mode's hotkeys
--- This means that one can design mode entry and exit such that pressing a key enables a child mode, while a second press enables the parent mode
+function enabled_hotkeys()
+  x = deepcopy(hs.hotkey.getHotkeys())
+  hs.fnutils.ieach(x, function(element)
+    for k,v in pairs(element) do if k ~= "idx" then element[k] = nil end end
+    print(element.idx)
+  end)
+end
+--enabled_hotkeys()
+
 function hyper_bind2toggle(parent, child, key, phrase, cheats)
 
   function child:entered()
-    hs.notify.show('Hammerspoon', 'Entered ' .. phrase .. ' mode', '')
+    hs.notify.show('Hammerspoon',
+    'Entered ' .. phrase .. ' mode',
+    '')
   end
 
   -- prevent an exit call if already exited elsewhere
@@ -93,7 +103,7 @@ function hyper_bind2toggle(parent, child, key, phrase, cheats)
   else hs.hotkey.bind({}, key, function() activate(child) end)
   end
 end
-
+-----------------------------------------
 function side_effects(expression)
   -- Since return is nil, this function is only useful for modifying state (i.e. its side effects)
   local x = load(expression)
@@ -136,6 +146,6 @@ function repetitive_assignment(baseVar, vals, numVars, append, valsAreFuns)
   end
 end
 
---repetitive_assignment("hyper_key", hyperKeys,#hyperKeys)
+-------------------------
 
 return omh

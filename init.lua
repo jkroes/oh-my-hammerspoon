@@ -8,7 +8,7 @@ omh_go({
       "windows.launch_apps",
       "windows.launch_epichrome",
       "windows.rough_cheatsheets",
-      "windows.screen_rotate",
+      --"windows.screen_rotate",
       --"windows.grid",
       --"mouse.locator",
       "audio.headphones_watcher",

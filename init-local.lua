@@ -90,7 +90,7 @@ hyper_bind2toggle(hyper, hyper3, hyper3_key, "screen")
 hyper_bind2toggle(hyper, hyper4, hyper4_key, "halves")
 hyper_bind2toggle(hyper, hyper5, hyper5_key, "thirds")
 hyper_bind2toggle(hyper, hyper6, hyper6_key, "epichrome launch")
-hyper_bind2toggle(hyper, hyper7, hyper7_key, "cheaters")
+hyper_bind2toggle(hyper, hyper7, hyper7_key, "cheaters", true)
 
 -- Plugin initialization
 omh_config("apps.hammerspoon_config_reload", hammerspoon_config_reload)
