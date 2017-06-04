@@ -67,4 +67,4 @@ if not status then
 end
 
 ---- Notify when the configuration is loaded
-notify("Oh my Hammerspoon!", "Config loaded")
+omh.notify("Oh my Hammerspoon!", "Config loaded")

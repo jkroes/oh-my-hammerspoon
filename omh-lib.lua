@@ -7,7 +7,7 @@ hs_config_dir = hs.configdir -- Need to replace all omh occurrences with hs.conf
 --hs_config_dir = os.getenv("HOME") .. "/.hammerspoon/"
 
 -- Display a notification
-function notify(title, message)
+function omh.notify(title, message)
    hs.notify.new({title=title, informativeText=message}):send()
 end
 
@@ -29,7 +29,7 @@ function omh.deepcopy(orig)
 end
 
 -- Reverse a list
-function reverseList(orig)
+function omh.reverseList(orig)
   local rev = {}
   local len = #orig+1
   for i,v in ipairs(orig) do
@@ -40,7 +40,7 @@ function reverseList(orig)
 end
 
 -- Return the sorted keys of a table
-function sortedkeys(tab)
+function omh.sortedkeys(tab)
    local keys={}
    -- Create sorted list of keys
    for k,v in pairs(tab) do table.insert(keys, k) end
@@ -80,70 +80,6 @@ function omh.enabled_hotkeys()
     print(element.idx)
   end)
   --print(hs.inspect(x))
-end
-
--- First keypress enters hyper, second exits any active mode, unless hyper.watch = nil
--- e.g. succesfully launching an app, which should set hyper.watch = nil before exiting the active mode
-local function hyperactive(hyper, modes)
-  if not hyper.watch then
-    hyper:enter(); hyper.watch = true
-  else
-    hyper.watch = nil -- must come before exit()
-    hs.fnutils.ieach(modes, function(element)
-      if element.active then element:exit() end
-    end)
-  end
-end
-
--- Notification types:
-----Tab, tab: Enter hyper, exit hyper
-----Tab,childkey,tab: Enter hyper, enter child, exit child
-----Tab, childkey, childkey: Enter hyper, enter child, exit hyper, enter hyper
-function omh.bindModalKeys2ModeToggle(modeTable, keyTable, idx, phraseTable)
-  local parent = modeTable[1]
-  local child = modeTable[idx]
-  local key = keyTable[idx]
-  local phrase = phraseTable[idx]
-
-  -- Overwrite modal objects' enter-exit methods
-  function child:entered()
-    print('Entered ' .. phrase .. ' mode', '')
-    hs.notify.show('Hammerspoon', 'Entered ' .. phrase .. ' mode','')
-    child.active = true
-  end
-
-  function child:exited()
-    print('Exited ' .. phrase .. ' mode', '')
-    if not (hyper.watch) then
-      hs.notify.show('Hammerspoon', 'Exited ' .. phrase .. ' mode', '')
-    end
-    child.active = nil
-  end
-
-  if child ~= parent then
-    parent:bind({}, key, function() parent:exit(); child:enter() end)
-    child:bind({}, key, function() child:exit(); parent:enter() end)
-  else
-    hs.hotkey.bind({}, key, function() hyperactive(child, modeTable) end)
-  end
-end
-
-function omh.bindKeys2Mode(modeTable, idx, config, fun)
-  local hyper = modeTable[1]
-  local parent = modeTable[idx] -- parent is child from modal toggle function
-
-  -- Succesful modal action
-  hs.fnutils.ieach(config,
-  function(element)
-    parent:bind({}, element[1],
-    function()
-      fun(element[2])
-      --hs.application.launchOrFocus(element[2])
-      hyper.watch = nil -- must come before exit()!!!
-      parent:exit()
-    end)
-  end)
-
 end
 
 -- Execute string
@@ -195,7 +131,116 @@ end
 function omh.queryGlobal(orig)
   local copy = omh.deepcopy(orig)
   for i,v in ipairs(copy) do copy[i] = _G[copy[i]] end
-  return copy
+return copy
 end
+
+function omh.insert_queryGlobal(x)
+  for i,v in ipairs(x) do
+    omh[v] = _G[v]
+  end
+end
+
+-- Erase global variables
+function omh.globeSafe(baseVar, numVars, append)
+  omh.assignment(baseVar, "nil", numVars, append, true)
+  -- values aren't really functions, but nil shouldn't have surrounding inner quotes
+end
+
+-- First keypress enters hyper, second exits any active mode, unless hyper.watch = nil
+-- e.g. succesfully launching an app should set hyper.watch = nil before exiting the active mode so that the second keypress re-enters hyper.
+local function hyperactive(hyper, modes)
+  if not hyper.watch then
+    hyper:enter(); hyper.watch = true
+  else
+    hyper.watch = nil -- must come before exit()
+    hs.fnutils.ieach(modes, function(element)
+      if element.active then element:exit() end
+    end)
+  end
+end
+
+-- Notification types:
+----Tab, tab: Enter hyper, exit hyper
+----Tab,childkey,tab: Enter hyper, enter child, exit child
+----Tab, childkey, childkey: Enter hyper, enter child, exit hyper, enter hyper
+----Expected behavior for 3+-deep modal chains, such as cheaters
+function omh.bindModalKeys2ModeToggle(modeTable, parentIdx, child, key, phrase, cheats)
+  local hyper = modeTable[parentIdx]
+  if not cheats then child = modeTable[child] end
+
+  -- Overwrite modal objects' enter-exit methods
+  function child:entered()
+    print('Entered ' .. phrase .. ' mode', '')
+    hs.notify.show('Hammerspoon', 'Entered ' .. phrase .. ' mode','')
+    child.active = true
+  end
+
+  function child:exited()
+    print('Exited ' .. phrase .. ' mode', '')
+    if not (hyper.watch) then
+      hs.notify.show('Hammerspoon', 'Exited ' .. phrase .. ' mode', '')
+    end
+    child.active = nil
+  end
+
+  if child ~= hyper then
+    hyper:bind({}, key, function() hyper:exit(); child:enter() end)
+    if cheats then key = "Q" end
+    child:bind({}, key, function() child:exit(); hyper:enter() end)
+  else
+    hs.hotkey.bind({}, key, function() hyperactive(child, modeTable) end)
+  end
+end
+
+function omh.bindKeys2Mode(modeTable, parentIdx, config, fun, cheats)
+  local hyper = modeTable[1]
+  local parent = modeTable[parentIdx] -- parent is child from modal toggle function, here parent of action keys
+
+  if not cheats then
+    hs.fnutils.ieach(config,
+    function(element)
+      parent:bind({}, element[1],
+      function()
+        fun(element[2])
+        hyper.watch = nil -- must come before exit()!!!
+        parent:exit()
+      end)
+    end)
+  end
+
+  if cheats then
+    local path = config.path
+    local navkeys = config.navkeys
+    config.path = nil -- allow easy looping
+    config.navkeys = nil
+
+    hs.fnutils.each(config,
+    function(element)
+      local child = hs.hotkey.modal.new() -- One modal hotkey per foldername specified in winmod.config
+      table.insert(omh.modes, child) -- hyper.watch only exits from modal objects stored in omh.modes, when the hyperkey is pressed.
+      local phrase = omh.find(config,element)
+      omh.bindModalKeys2ModeToggle(omh.modes, 7, child, element, phrase, true)
+
+      path = path .. phrase .. "/"
+      files = omh.listcheatfiles(path) -- Directories are assumed to have .pdf,.png, and/or .md, and the latter are ignored. Files are assumed to be named with letters, numbers, and/or underscores.
+
+      local numfiles = #files
+      for i = 1,numfiles do
+        child:bind({},navkeys[i],
+        function()
+          hs.execute("open " .. path .. files[i])
+          --print("open " .. path .. files[i])
+          hyper.watch = nil -- must come before exit()!!!
+          --child:exit() -- Enable if you want to exit after opening one cheatsheet
+          -- Otherwise "Q" is bound to enter cheaters mode, while hyperkey will exit any foldername mode (e.g. "g" for git)
+        end)
+      end
+    end)
+  end
+
+end
+
+
+
 
 return omh

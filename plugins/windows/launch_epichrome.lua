@@ -11,20 +11,10 @@ function winmod.init()
   -- Launch and focus apps
   local c = winmod.config
 
-  hs.fnutils.ieach(c,
-  function(element)
-    hyper6:bind({}, element[1],
-    function()
-      hs.application.launchOrFocus(element[2])
-      hyper6:exit() -- must include an exit statement for every binding!!!
-      hyper:exit()
-    end)
+  omh.bindKeys2Mode(omh.modes, 6, c, function(x)
+    hs.application.launchOrFocus(x)
   end)
 
 end
 
 return winmod
-
--- Alternative method with activate:
--- http://thume.ca/2016/07/16/advanced-hackery-with-the-hammerspoon-window-manager/
--- see second-to-last chunk that inserts table elements into definitions table before binding
