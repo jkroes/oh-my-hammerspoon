@@ -1,9 +1,9 @@
-omh={}
+local omh={} -- Return as module, rather than global variable for all scripts to see
 
 -- Some useful global variables
-hostname = hs.host.localizedName()
-logger = hs.logger.new('oh-my-hs')
-hs_config_dir = hs.configdir -- Need to replace all omh occurrences with hs.config.dir
+omh.hostname = hs.host.localizedName()
+omh.logger = hs.logger.new('oh-my-hs')
+omh.hs_config_dir = hs.configdir -- Need to replace all omh occurrences with hs.config.dir
 --hs_config_dir = os.getenv("HOME") .. "/.hammerspoon/"
 
 -- Display a notification
@@ -104,9 +104,6 @@ function omh.insert_numbers(str, num1, num2, append)
       table.insert(x, newStr)
     end
   end
-  -- for i = num1,num2 do
-  --   table.insert(x, str .. i)
-  -- end
   return x
 end
 
@@ -146,101 +143,48 @@ function omh.globeSafe(baseVar, numVars, append)
   -- values aren't really functions, but nil shouldn't have surrounding inner quotes
 end
 
--- First keypress enters hyper, second exits any active mode, unless hyper.watch = nil
--- e.g. succesfully launching an app should set hyper.watch = nil before exiting the active mode so that the second keypress re-enters hyper.
-local function hyperactive(hyper, modes)
-  if not hyper.watch then
-    hyper:enter(); hyper.watch = true
-  else
-    hyper.watch = nil -- must come before exit()
-    hs.fnutils.ieach(modes, function(element)
-      if element.active then element:exit() end
-    end)
-  end
-end
-
--- Notification types:
-----Tab, tab: Enter hyper, exit hyper
-----Tab,childkey,tab: Enter hyper, enter child, exit child
-----Tab, childkey, childkey: Enter hyper, enter child, exit hyper, enter hyper
-----Expected behavior for 3+-deep modal chains, such as cheaters
-function omh.bindModalKeys2ModeToggle(modeTable, parentIdx, child, key, phrase, cheats)
-  local hyper = modeTable[parentIdx]
-  if not cheats then child = modeTable[child] end
-
-  -- Overwrite modal objects' enter-exit methods
-  function child:entered()
-    print('Entered ' .. phrase .. ' mode', '')
-    hs.notify.show('Hammerspoon', 'Entered ' .. phrase .. ' mode','')
-    child.active = true
-  end
-
-  function child:exited()
-    print('Exited ' .. phrase .. ' mode', '')
-    if not (hyper.watch) then
-      hs.notify.show('Hammerspoon', 'Exited ' .. phrase .. ' mode', '')
-    end
-    child.active = nil
-  end
-
-  if child ~= hyper then
-    hyper:bind({}, key, function() hyper:exit(); child:enter() end)
-    if cheats then key = "Q" end
-    child:bind({}, key, function() child:exit(); hyper:enter() end)
-  else
-    hs.hotkey.bind({}, key, function() hyperactive(child, modeTable) end)
-  end
-end
-
-function omh.bindKeys2Mode(modeTable, parentIdx, config, fun, cheats)
-  local hyper = modeTable[1]
-  local parent = modeTable[parentIdx] -- parent is child from modal toggle function, here parent of action keys
-
-  if not cheats then
-    hs.fnutils.ieach(config,
-    function(element)
-      parent:bind({}, element[1],
-      function()
-        fun(element[2])
-        hyper.watch = nil -- must come before exit()!!!
-        parent:exit()
-      end)
-    end)
-  end
-
-  if cheats then
-    local path = config.path
-    local navkeys = config.navkeys
-    config.path = nil -- allow easy looping
-    config.navkeys = nil
-
-    hs.fnutils.each(config,
-    function(element)
-      local child = hs.hotkey.modal.new() -- One modal hotkey per foldername specified in winmod.config
-      table.insert(omh.modes, child) -- hyper.watch only exits from modal objects stored in omh.modes, when the hyperkey is pressed.
-      local phrase = omh.find(config,element)
-      omh.bindModalKeys2ModeToggle(omh.modes, 7, child, element, phrase, true)
-
-      path = path .. phrase .. "/"
-      files = omh.listcheatfiles(path) -- Directories are assumed to have .pdf,.png, and/or .md, and the latter are ignored. Files are assumed to be named with letters, numbers, and/or underscores.
-
-      local numfiles = #files
-      for i = 1,numfiles do
-        child:bind({},navkeys[i],
-        function()
-          hs.execute("open " .. path .. files[i])
-          --print("open " .. path .. files[i])
-          hyper.watch = nil -- must come before exit()!!!
-          --child:exit() -- Enable if you want to exit after opening one cheatsheet
-          -- Otherwise "Q" is bound to enter cheaters mode, while hyperkey will exit any foldername mode (e.g. "g" for git)
-        end)
-      end
-    end)
-  end
-
-end
+--https://stackoverflow.com/questions/11380379/create-lua-function-from-string
+-- function fcreate(variables, fs)
+--
+--   local varnames = {}
+--   local varvalues = {}
+--   local nvars = 0
+--   for n,v in pairs(variables) do
+--     nvars = nvars + 1
+--     table.insert(varnames, n)
+--     table.insert(varvalues, v)
+--   end
+--
+--   local chunk_str = (
+--      'return (function(' .. table.concat(varnames, ',') .. ') ' ..
+--          'return function() return ' .. fs .. ' end ' ..
+--       'end)(...)'
+--   )
+--
+--   return assert( load(chunk_str) )( table.unpack(varvalues, 1, nvars) )
+--
+-- end
+-- omh.bind2Mode = {}
+-- function omh.bind2Mode.base(idx, mod, key, args)
+--   parent = omh.modes[idx]
+--   --parent:bind(mod, key, function() print(table.unpack(args)) end)
+--   f = fcreate({a=args[1],b=args[1]}, 'print(b+a)')
+--   parent:bind(mod, key, f)
+-- end
 
 
+--- Fucking useless. Does the same thing when temp() is called as simply print(). And that doesnt work as an argument to hammerspoon's bind function, which requires a function. You only have the options of submitting a function as 1) `print` (without the parens and thus useless) or 2) function(args) print(args) end. In other words, load() won't help you solve this problem.
+
+-- function returnFun(expr)
+--   local x
+--   x = load("function test(...) args = {...};"..expr.."(table.unpack(args)) end"); x()
+--   local x = test
+--   test = nil
+--   return x
+--   -- Creates global test; add statement to remove
+-- end
+-- --temp = returnFun("args = {...}; print(table.unpack(args))")
+-- temp = returnFun("print")
 
 
 return omh

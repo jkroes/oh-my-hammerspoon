@@ -8,11 +8,19 @@ winmod.config = {
 
 --- Initialize the module
 function winmod.init()
-  -- Launch and focus apps
-  local c = winmod.config
 
-  omh.bindKeys2Mode(omh.modes, 6, c, function(x)
-    hs.application.launchOrFocus(x)
+  local c = winmod.config
+  local hyper = omh.modes[1]
+  parent = omh.modes[6]
+
+  hs.fnutils.ieach(c,
+  function(element)
+    parent:bind({}, element[1],
+    function()
+      hs.application.launchOrFocus(element[2])
+      hyper.watch = nil -- must come before exit()!!!
+      parent:exit()
+    end)
   end)
 
 end

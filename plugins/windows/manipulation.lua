@@ -1,9 +1,9 @@
 --- Diego Zamboni <diego@zzamboni.org>
 -- Window management
 
-local winmod = {}
+local mod = {}
 
-winmod.config = {
+mod.config = {
   maximize = "m",
   screens = {
     screen_right = "l",
@@ -57,7 +57,7 @@ end
 
 
 -- Resize current window to different parts of the screen
-function winmod.resizeCurrentWindow(how)
+function mod.resizeCurrentWindow(how)
   local win = hs.window.focusedWindow()
   local screen = win:screen()
   local x = 0
@@ -132,62 +132,36 @@ function winmod.resizeCurrentWindow(how)
 end
 
 --- Initialize the module
-function winmod.init()
-  --[[
-  local c=winmod.config
+function mod.init()
 
-  hs.fnutils.each(c,
-  function(element)
-    hs.hotkey.bind(element[1],element[2],
-    function()
-      --winmod.resizeCurrentWindow(element[3])
-      --print(find(c,element))
-      winmod.resizeCurrentWindow(find(c,element))
-    end)
-  end)
-  --]]
-  local c = winmod.config
-  local m = winmod.config.maximize
-  local s = winmod.config.screens
-  local h = winmod.config.halves
-  local t = winmod.config.thirds
+  local c = mod.config
+  local m = mod.config.maximize
+  local s = mod.config.screens
+  local h = mod.config.halves
+  local t = mod.config.thirds
+  local hyper = omh.modes[1]
 
-  hyper:bind({}, m,
-  function()
-    winmod.resizeCurrentWindow(find(c,m))
+  omh.bind2Mode.HyperNoMod(m, function()
+    mod.resizeCurrentWindow(omh.find(c,m))
+    hyper.watch = nil
     hyper:exit()
   end)
 
-  hs.fnutils.each(s,
-  function(element)
-    hyper3:bind({}, element,
-    function()
-      winmod.resizeCurrentWindow(find(s,element))
-      hyper3:exit()
-      hyper:exit()
+  local function assign(field, idx)
+    hs.fnutils.each(field, function(element)
+      omh.bind2Mode.NoMod(idx, element, function()
+        mod.resizeCurrentWindow(omh.find(field,element))
+        local parent = omh.modes[idx]
+        hyper.watch = nil -- must come before exit()!!!
+        parent:exit()
+      end)
     end)
-  end)
+  end
 
-  hs.fnutils.each(h,
-  function(element)
-    hyper4:bind({}, element,
-    function()
-      winmod.resizeCurrentWindow(find(h,element))
-      hyper4:exit()
-      hyper:exit()
-    end)
-  end)
-
-  hs.fnutils.each(t,
-  function(element)
-    hyper5:bind({}, element,
-    function()
-      winmod.resizeCurrentWindow(find(t,element))
-      hyper5:exit()
-      hyper:exit()
-    end)
-  end)
+  assign(s,3)
+  assign(h,4)
+  assign(t,5)
 
 end
 
-return winmod
+return mod

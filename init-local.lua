@@ -1,29 +1,32 @@
 -- Uncomment to set non-default log level
 -- logger.setLogLevel('debug')
 
+local plugins = {}
+
 -- Plugin configuration
-local ammerspoon_config_reload = {
+plugins.hammerspoon_config_reload = {
   auto_reload = true,
   manual_reload_key = {{"cmd", "alt", "ctrl"}, "z"}
 }
-local headphones_watcher = {
+
+plugins.headphones_watcher = {
    control_spotify = true,
    control_itunes  = false
 }
 
-local rough_cheatsheets = {
+plugins.rough_cheatsheets = {
   path = "~/Documents/cheatsheets/",
   navkeys = {"a","s","d","f","g","h","j","k","l",";"},
   git = "g"
 } -- Note that variable names (aside from path and navkeys) are names of individual subdirectories on path
 -- Because the navigation keys may conflict with the foldername keys (e.g. git = "g") and the foldername mode is the parent of the navigation mode, the same key originally would both open a cheatfile and exit the parent foldername mode. I've tweaked bindModalKeys2ModeToggle(), so that instead of pressing the same key to exit foldername mode, you press "Q", which takes you back to cheat mode, where you can specify a new foldername.
 
-local launch_epichrome = {
+plugins.launch_epichrome = {
    {"g", "/Users/justinkroes/Applications/Gmail.app"},
    {"h", "/Users/justinkroes/Applications/GitHub.app"},
 }
 
-local launch_apps = {
+plugins.launch_apps = {
   {"a", "Atom"},
   {"c", "Calendar"},
   {"d", "Dash"},
@@ -43,7 +46,7 @@ local launch_apps = {
 -- hs.fnutils.each(hs.application.runningApplications(), function(app) print(app:title()) end)
 -- Apparently we should use the actual app name as shown in finder, and an absolute path can also be used. Not the results of the code above...
 
-local manipulation = {
+plugins.manipulation = {
   maximize = "m",
   screens = {
     screen_right = "l",
@@ -63,7 +66,7 @@ local manipulation = {
   },
 }
 
-local screen_rotate = {
+plugins.screen_rotate = {
    toggle_rotate_modifier = { "Ctrl", "Cmd", "Alt"},
    toggle_rotate_keys = {
       [".*"] = "f15"
@@ -78,54 +81,17 @@ local screen_rotate = {
 }
 
 -- Hyper/child mode configuration
--- Order is vitally important. You can see the order of each string by looking at each plugin's numeric argument to bindKeys2Mode()
-local hyperKeys = {"f13","l","s","h","f19","e","t"}
-omh.hyperPhrase = {"HYPER", "app launch", "screen", "halves", "thirds", "epichrome launch", "cheaters"}
+-- Order is vitally important. You can see the order of each string by looking at each plugin file's parent variable.
+plugins.hyperKeys = {"f13","l","s","h","f19","e","t"}
+plugins.hyperPhrase = {"HYPER", "app launch", "screen", "halves", "thirds", "epichrome launch", "cheaters"}
 
--- Create sequential modes (Currently the user never sees the strings returned as the first modes and modal_keys elements, so it might be overkill to have assignment instead of table indices)
+-- Function call required for every instance of a plugins table, though error will not be thrown otherwise
+omh_config("apps.hammerspoon_config_reload", plugins.hammerspoon_config_reload)
+omh_config("audio.headphones_watcher", plugins.headphones_watcher)
+omh_config("windows.launch_epichrome", plugins.launch_epichrome)
+omh_config("windows.launch_apps", plugins.launch_apps)
+omh_config("windows.rough_cheatsheets", plugins.rough_cheatsheets)
+omh_config("windows.manipulation", plugins.manipulation)
+omh_config("windows.screen_rotate", plugins.screen_rotate)
 
--- Assign a bunch of variables to hyperKeys and return the varnames
-local len = #hyperKeys
-modal_keys = omh.assignment("hyper_key", hyperKeys, len, false, false)
-modes = omh.assignment("hyper", "hs.hotkey.modal.new()", len, true, true)
-
--- Swap variable names out for variable values
-omh.modal_keys = omh.queryGlobal(modal_keys)
-omh.modes = omh.queryGlobal(modes)
---omh.insert_queryGlobal(modal_keys)
---omh.insert_queryGlobal(modes)
-
--- Nix global variables created by omh.assignment()
-omh.globeSafe("hyper_key", len, false)
-omh.globeSafe("hyper", len, true)
-
-for i=1,len do
-  omh.bindModalKeys2ModeToggle(omh.modes,1, i, omh.modal_keys[i], omh.hyperPhrase[i])
-end
-
-
--- then make sure to set hyper.active = nil in each script that successfully completes a mode and exits hyper. use "Q" to exit foldermode in cheats.
--- set information parameter of notifications to list of button options
-
--- Plugin initialization
-omh_config("apps.hammerspoon_config_reload", hammerspoon_config_reload)
-omh_config("audio.headphones_watcher", headphones_watcher)
-omh_config("windows.launch_epichrome",launch_epichrome)
-omh_config("windows.launch_apps", launch_apps)
-omh_config("windows.rough_cheatsheets", rough_cheatsheets)
-omh_config("windows.manipulation", manipulation)
-omh_config("windows.screen_rotate", screen_rotate)
-
--- Note: old syntax below. Easily refactored.
--- Full screen Chrome is crashing. Need to read source code for clue why.
---[[
-omh_config("apps.windowtabs",
-{
-  apps = {
-    "Atom",
-    "Microsoft Word",
-    "Microsoft Excel",
-    "Microsoft PowerPoint"
-    }
-})
-]]
+return plugins
