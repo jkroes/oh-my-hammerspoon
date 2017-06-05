@@ -82,8 +82,8 @@ plugins.screen_rotate = {
 
 -- Hyper/child mode configuration
 -- Order is vitally important. You can see the order of each string by looking at each plugin file's parent variable.
-plugins.hyperKeys = {"f13","l","s","h","f19","e","t"}
-plugins.hyperPhrase = {"HYPER", "app launch", "screen", "halves", "thirds", "epichrome launch", "cheaters"}
+plugins.hyperKeys = {"f13","l","s","h","f19","e","t", "q"} -- keys to bind to hyper
+plugins.hyperPhrase = {"HYPER", "app launch", "screen", "halves", "thirds", "epichrome launch", "cheaters", "quarters"} -- phrase to display in notifications
 
 -- Function call required for every instance of a plugins table, though error will not be thrown otherwise
 omh_config("apps.hammerspoon_config_reload", plugins.hammerspoon_config_reload)

@@ -21,6 +21,12 @@ mod.config = {
     third_up = "i",
     third_down = "m"
   },
+  quarters = {
+    bottom_left = "j",
+    bottom_right = "k",
+    top_left = "u",
+    top_right = "i"
+    }
 }
 
 -- Prevent laggy animations (doesn't need to be optionally configured)
@@ -83,6 +89,10 @@ function mod.resizeCurrentWindow(how)
   newrect.vthird0 = function() return {x,0,1,1/3} end
   newrect.vthird1 = function() return {x,1/3,1,1/3} end
   newrect.vthird2 = function() return {x,2/3,1,1/3} end
+  newrect.bottom_left = function() return {x,1/2,(1-x)/2,1/2} end
+  newrect.bottom_right = function() return {x+(1-x)/2,1/2,(1-x)/2,1/2} end
+  newrect.top_left = function() return {x,0,(1-x)/2,1/2} end
+  newrect.top_right = function() return {x+(1-x)/2,0,(1-x)/2,1/2} end
   newrect.maximize = function()
     local subhow
     if win:id() == nil then
@@ -135,10 +145,11 @@ end
 function mod.init()
 
   local c = mod.config
-  local m = mod.config.maximize
-  local s = mod.config.screens
-  local h = mod.config.halves
-  local t = mod.config.thirds
+  local m = c.maximize
+  local s = c.screens
+  local h = c.halves
+  local t = c.thirds
+  local q = c.quarters
   local hyper = omh.modes[1]
 
   omh.bind2Mode.HyperNoMod(m, function()
@@ -161,6 +172,7 @@ function mod.init()
   assign(s,3)
   assign(h,4)
   assign(t,5)
+  assign(q,8)
 
 end
 
