@@ -131,7 +131,8 @@ end
 ----Tab, childkey, childkey: Enter hyper, enter child, exit hyper, enter hyper
 ----Expected behavior for 3+-deep modal chains, such as cheaters
 function omh.bindMode2Mode(modeTable, parentIdx, child, key, phrase, cheats)
-  local hyper = modeTable[parentIdx]
+  local hyper = modeTable[1]
+  local parent = modeTable[parentIdx]
   if not cheats then child = modeTable[child] end
 
   -- Overwrite modal objects' enter-exit methods
@@ -149,10 +150,10 @@ function omh.bindMode2Mode(modeTable, parentIdx, child, key, phrase, cheats)
     child.active = nil
   end
 
-  if child ~= hyper then
-    hyper:bind({}, key, function() hyper:exit(); child:enter() end)
+  if child ~= parent then
+    parent:bind({}, key, function() parent:exit(); child:enter() end)
     if cheats then key = "Q" end
-    child:bind({}, key, function() child:exit(); hyper:enter() end)
+    child:bind({}, key, function() child:exit(); parent:enter() end)
   else
     hs.hotkey.bind({}, key, function() hyperactive(child, modeTable) end)
   end

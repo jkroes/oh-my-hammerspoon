@@ -17,7 +17,7 @@ function mod.init()
   c.path = nil -- allow easy looping
   c.navkeys = nil -- same
   local hyper = omh.modes[1]
-  parent = omh.modes[7]
+  local parent = omh.modes[7]
 
   hs.fnutils.each(c,
   function(element)

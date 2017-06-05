@@ -13,7 +13,7 @@ function winmod.init()
   -- Launch and focus apps
   local c = winmod.config
   local hyper = omh.modes[1]
-  parent = omh.modes[2]
+  local parent = omh.modes[2]
 
   hs.fnutils.ieach(c,
   function(element)

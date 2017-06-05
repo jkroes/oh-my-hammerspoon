@@ -11,7 +11,7 @@ function winmod.init()
 
   local c = winmod.config
   local hyper = omh.modes[1]
-  parent = omh.modes[6]
+  local parent = omh.modes[6]
 
   hs.fnutils.ieach(c,
   function(element)
