@@ -187,4 +187,11 @@ end
 -- temp = returnFun("print")
 
 
+
+
+
+-- return function() print(2+2) end -- Need `return` for anon functions; otherwise name-type error
+-- return function(x) return x end -- objects require a return statement, or they fail; can't define body of function that way; however, note that anon functions require return before the function constructor, in place of a name.
+
+
 return omh

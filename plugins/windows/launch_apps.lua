@@ -1,19 +1,22 @@
 -- Window management
 --- Diego Zamboni <diego@zzamboni.org>
 
-local winmod = {}
+local mod = {}
 
-winmod.config = {
-  {"g", "Google Chrome"},
+mod.config = {
 }
 
 --- Initialize the module
-function winmod.init()
+function mod.init()
 
   -- Launch and focus apps
-  local c = winmod.config
-  local hyper = omh.modes[1]
-  local parent = omh.modes[2]
+  local c = mod.config
+  --print(hs.inspect(c))
+  local modalPhrase = c.modalPhrase; c.modalPhrase = nil
+  local modalKey = c. modalKey; c.modalKey = nil
+  local hyper = omh.modes.hyper
+  omh.bindMode2Mode(hyper, modalKey, modalPhrase)
+  local launchMode = omh.modes[modalPhrase]
 
   local function applicationWatcher(appName, eventType, appObject)
     if eventType == hs.application.watcher.launched then
@@ -30,15 +33,16 @@ function winmod.init()
 
   hs.fnutils.ieach(c,
   function(element)
-    parent:bind({}, element[1],
+    launchMode:bind({}, element[1],
     function()
       local appName = element[2]
       hs.application.launchOrFocus(appName)
       hyper.watch = nil -- must come before exit()!!!
-      parent:exit()
+      launchMode:exit()
     end)
   end)
 
+
 end
 
-return winmod
+return mod

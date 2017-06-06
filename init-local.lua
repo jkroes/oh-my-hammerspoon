@@ -3,6 +3,12 @@
 
 local plugins = {}
 
+-- Hyper configuration
+plugins.hyper = {
+  key = "f13",
+  phrase = "HYPER"
+}
+
 -- Plugin configuration
 plugins.hammerspoon_config_reload = {
   auto_reload = true,
@@ -15,18 +21,25 @@ plugins.headphones_watcher = {
 }
 
 plugins.rough_cheatsheets = {
+  modalPhrase = "cheaters",
+  modalKey = "t",
   path = "~/Documents/cheatsheets/",
   navkeys = {"a","s","d","f","g","h","j","k","l",";"},
+  exitAfterOpen = false,
   git = "g"
 } -- Note that variable names (aside from path and navkeys) are names of individual subdirectories on path
 -- Because the navigation keys may conflict with the foldername keys (e.g. git = "g") and the foldername mode is the parent of the navigation mode, the same key originally would both open a cheatfile and exit the parent foldername mode. I've tweaked bindModalKeys2ModeToggle(), so that instead of pressing the same key to exit foldername mode, you press "Q", which takes you back to cheat mode, where you can specify a new foldername.
 
 plugins.launch_epichrome = {
-   {"g", "/Users/justinkroes/Applications/Gmail.app"},
-   {"h", "/Users/justinkroes/Applications/GitHub.app"},
+  modalPhrase = "epichrome launch",
+  modalKey = "e",
+  {"g", "/Users/justinkroes/Applications/Gmail.app"},
+  {"h", "/Users/justinkroes/Applications/GitHub.app"},
 }
 
 plugins.launch_apps = {
+  modalPhrase = "app launch",
+  modalKey = "l",
   {"a", "Atom"},
   {"c", "Calendar"},
   {"d", "Dash"},
@@ -49,21 +62,31 @@ plugins.launch_apps = {
 plugins.manipulation = {
   maximize = "m",
   screens = {
+    modalKey = "s",
     screen_right = "l",
     screen_left = "j"
   },
   halves = {
+    modalKey = "h",
     left = "j",
     right = "l",
     top = "i",
     bottom = "m"
   },
   thirds = {
+    modalKey = "f19", -- I don't use thirds, so I mapped it off-keyboard
     third_left = "j",
     third_right = "l",
     third_up = "i",
     third_down = "m"
   },
+  quarters = {
+    modalKey = "q",
+    bottom_left = "j",
+    bottom_right = "k",
+    top_left = "u",
+    top_right = "i"
+    }
 }
 
 plugins.screen_rotate = {
@@ -80,12 +103,7 @@ plugins.screen_rotate = {
    rotated = { },
 }
 
--- Hyper/child mode configuration
--- Order is vitally important. You can see the order of each string by looking at each plugin file's parent variable.
-plugins.hyperKeys = {"f13","l","s","h","f19","e","t", "q"} -- keys to bind to hyper
-plugins.hyperPhrase = {"HYPER", "app launch", "screen", "halves", "thirds", "epichrome launch", "cheaters", "quarters"} -- phrase to display in notifications
-
--- Function call required for every instance of a plugins table, though error will not be thrown otherwise
+-- Function call required for every instance of a non-hyper plugins table
 omh_config("apps.hammerspoon_config_reload", plugins.hammerspoon_config_reload)
 omh_config("audio.headphones_watcher", plugins.headphones_watcher)
 omh_config("windows.launch_epichrome", plugins.launch_epichrome)

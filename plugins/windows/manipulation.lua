@@ -4,29 +4,6 @@
 local mod = {}
 
 mod.config = {
-  maximize = "m",
-  screens = {
-    screen_right = "l",
-    screen_left = "j"
-  },
-  halves = {
-    left = "j",
-    right = "l",
-    top = "i",
-    bottom = "m"
-  },
-  thirds = {
-    third_left = "j",
-    third_right = "l",
-    third_up = "i",
-    third_down = "m"
-  },
-  quarters = {
-    bottom_left = "j",
-    bottom_right = "k",
-    top_left = "u",
-    top_right = "i"
-    }
 }
 
 -- Prevent laggy animations (doesn't need to be optionally configured)
@@ -146,33 +123,38 @@ function mod.init()
 
   local c = mod.config
   local m = c.maximize
-  local s = c.screens
+  local s = c.screens -- these will break if the names are ever changed in the config file. Need to make this robust.
   local h = c.halves
   local t = c.thirds
   local q = c.quarters
-  local hyper = omh.modes[1]
+  local hyper = omh.modes.hyper
 
-  omh.bind2Mode.HyperNoMod(m, function()
+  hyper:bind({}, m, function()
     mod.resizeCurrentWindow(omh.find(c,m))
     hyper.watch = nil
     hyper:exit()
   end)
 
-  local function assign(field, idx)
-    hs.fnutils.each(field, function(element)
-      omh.bind2Mode.NoMod(idx, element, function()
-        mod.resizeCurrentWindow(omh.find(field,element))
-        local parent = omh.modes[idx]
+  local function assign(moveType, idx)
+    -- Create movement modes and bind to hyper
+    local modalKey = moveType.modalKey; moveType.modalKey = nil
+    local modalPhrase = omh.find(c, moveType)
+    omh.bindMode2Mode(hyper, modalKey, modalPhrase)
+    local mode = omh.modes[modalPhrase]
+    -- Bind keys to movement modes
+    hs.fnutils.each(moveType, function(movement)
+      mode:bind({}, movement, function()
+        mod.resizeCurrentWindow(omh.find(moveType, movement))
         hyper.watch = nil -- must come before exit()!!!
-        parent:exit()
+        mode:exit()
       end)
     end)
   end
 
-  assign(s,3)
-  assign(h,4)
-  assign(t,5)
-  assign(q,8)
+  assign(s)
+  assign(h)
+  assign(t)
+  assign(q)
 
 end
 
