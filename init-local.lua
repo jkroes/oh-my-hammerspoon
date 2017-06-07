@@ -61,6 +61,7 @@ plugins.launch_apps = {
 
 plugins.manipulation = {
   maximize = "m",
+  zoom = "z",
   screens = {
     modalKey = "s",
     screen_right = "l",

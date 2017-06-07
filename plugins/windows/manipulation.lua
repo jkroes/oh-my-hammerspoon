@@ -123,6 +123,7 @@ function mod.init()
 
   local c = mod.config
   local m = c.maximize
+  local z = c.zoom
   local s = c.screens -- these will break if the names are ever changed in the config file. Need to make this robust.
   local h = c.halves
   local t = c.thirds
@@ -131,8 +132,15 @@ function mod.init()
 
   hyper:bind({}, m, function()
     mod.resizeCurrentWindow(omh.find(c,m))
-    hyper.watch = nil
-    hyper:exit()
+    hyper.watch = nil; hyper:exit()
+  end)
+
+  hyper:bind({}, z, function()
+    local frontApp = hs.application.frontmostApplication()
+    local zoom = {"Window", "Zoom"}
+    frontApp:selectMenuItem(zoom)
+    --frontApp:selectMenuItem(zoom) -- a second time returns to previous size, but now the window will be on-screen
+    hyper.watch = nil; hyper:exit()
   end)
 
   local function assign(moveType, idx)

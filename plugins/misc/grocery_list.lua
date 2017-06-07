@@ -22,6 +22,7 @@ function winmod.init()
     if message then
       hs.messages.iMessage("9167996697", message)
     end
+    hs.application.find("Messages"):kill()
   end)
 
 end
