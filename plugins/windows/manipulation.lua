@@ -139,7 +139,7 @@ function mod.init()
     local frontApp = hs.application.frontmostApplication()
     local zoom = {"Window", "Zoom"}
     frontApp:selectMenuItem(zoom)
-    --frontApp:selectMenuItem(zoom) -- a second time returns to previous size, but now the window will be on-screen
+    frontApp:selectMenuItem(zoom) -- a second time returns to previous size, but now the window will be on-screen
     hyper.watch = nil; hyper:exit()
   end)
 
