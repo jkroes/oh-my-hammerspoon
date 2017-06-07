@@ -103,6 +103,10 @@ plugins.screen_rotate = {
    rotated = { },
 }
 
+plugins.grocery_list = {
+  "m"
+}
+
 -- Function call required for every instance of a non-hyper plugins table
 omh_config("apps.hammerspoon_config_reload", plugins.hammerspoon_config_reload)
 omh_config("audio.headphones_watcher", plugins.headphones_watcher)
@@ -111,5 +115,6 @@ omh_config("windows.launch_apps", plugins.launch_apps)
 omh_config("windows.rough_cheatsheets", plugins.rough_cheatsheets)
 omh_config("windows.manipulation", plugins.manipulation)
 omh_config("windows.screen_rotate", plugins.screen_rotate)
+omh_config("misc.grocery_list", plugins.grocery_list)
 
 return plugins
