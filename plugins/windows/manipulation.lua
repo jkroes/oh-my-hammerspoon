@@ -124,6 +124,7 @@ function mod.init()
   local c = mod.config
   local m = c.maximize
   local z = c.zoom
+  local sW = c.switchWindows
   local s = c.screens -- these will break if the names are ever changed in the config file. Need to make this robust.
   local h = c.halves
   local t = c.thirds
@@ -133,6 +134,12 @@ function mod.init()
   hyper:bind({}, m, function()
     mod.resizeCurrentWindow(omh.find(c,m))
     hyper.watch = nil; hyper:exit()
+  end)
+
+  hyper:bind({}, sW, function()
+    -- print(hs.inspect(hs.keycodes.map))
+    hs.eventtap.keyStroke({"cmd"}, "`")
+    --hyper.watch = nil; hyper:exit()
   end)
 
   hyper:bind({}, z, function()
