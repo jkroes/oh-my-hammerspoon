@@ -112,6 +112,29 @@ In contrast, in Lua variables must be declared local. When evaluating a variable
 
 To create a new scope without using a function, loop, or conditional, use `do ... end`.
 
+#### Forward declarations
+Avoid globals by using forward delcarations:
+1. Call a function before defining it, but
+wrap the function call in another function.
+2. Define the inner function.
+3. Call the wrapper function.
+4. Profit.
+
+```
+local doSomething  --forward declaration
+
+local function makeSomethingHappen()
+   local fred = 10
+   doSomething( fred )
+end
+
+doSomething = function( param )
+   print( param )
+end
+
+makeSomethingHappen()
+```
+
 ### Object types
 There are eight basic types in Lua: `nil`, `boolean`, `number`, `string`, `userdata`, `function`, `thread`, and `table`. Modules are loaded as tables. Type `hs` into the console and see what it shows you.
 
