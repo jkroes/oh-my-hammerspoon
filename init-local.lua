@@ -1,6 +1,7 @@
 -- Uncomment to set non-default log level
--- logger.setLogLevel('debug')
-
+--hs.logger.historySize(100)
+-- omh.logger.setLogLevel('debug')
+---- nothing, error, warning, info, debug, or verbose (also 1-5)
 local plugins = {}
 
 -- Hyper configuration
