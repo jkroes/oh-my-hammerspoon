@@ -1,22 +1,19 @@
 ---- Configuration file management
 ---- Original code from http://www.hammerspoon.org/go/#fancyreload
 
-local mod={}
-local configFileWatcher = nil
+local obj={}
+local configFileWatcher
 
-mod.config = {
-   auto_reload = true,
-   manual_reload_key = {{"cmd", "alt", "ctrl"}, "r"}
-}
+obj.auto_reload = true
+obj.manual_reload_key = {{"cmd", "alt", "ctrl"}, "r"}
 
 -- Automatic config reload if any files in ~/.hammerspoon change
 function reloadConfig(files)
    local doReload = false
-   x = 2
    for _,file in pairs(files) do
       if file:sub(-4) == ".lua" and (not string.match(file, '/[.]#')) then
          --omh.logger.df("Changed file = %s", file)
-         -- reloadConfig() needs to be defined within mod.init, or when called it will fail because
+         -- reloadConfig() needs to be defined within obj:start, or when called it will fail because
          doReload = true
       end
    end
@@ -25,17 +22,19 @@ function reloadConfig(files)
    end
 end
 
-function mod.init()
+function obj:start()
 
-  if mod.config.auto_reload then
+  if self.auto_reload then
     omh.logger.df("Setting up config auto-reload watcher on %s", hs_config_dir)
-    configFileWatcher = hs.pathwatcher.new(omh.hs_config_dir, reloadConfig)
+    configFileWatcher = hs.pathwatcher.new(hs.configdir, reloadConfig)
     configFileWatcher:start()
   end
 
   -- Manual config reload
-  omh.bind(mod.config.manual_reload_key, hs.reload)
+  if next(self.manual_reload_key) then
+    hs.hotkey.bind(self.manual_reload_key[1], self.manual_reload_key[2], hs.reload)
+  end
 
 end
 
-return mod
+return obj

@@ -113,7 +113,7 @@ In contrast, in Lua variables must be declared local. When evaluating a variable
 To create a new scope without using a function, loop, or conditional, use `do ... end`.
 
 #### Forward declarations
-Avoid globals by using forward delcarations:
+Avoid globals by using [forward delcarations](https://coronalabs.com/blog/2013/05/28/tutorial-goodbye-globals/):
 1. Call a function before defining it, but
 wrap the function call in another function.
 2. Define the inner function.
