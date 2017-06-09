@@ -7,25 +7,13 @@ local OMH_CONFIG={}
 
 function load_plugins(plugins)
    plugins = plugins or {}
-   for i,p in ipairs(plugins) do
-      table.insert(OMH_PLUGINS, p)
-   end -- Why not simply OMH_PLUGINS=plugins above? Same result as far as I can tell -JK
-   -- For debugging:
-   --print("Look at me:")
-   --hs.inspect(OMH_PLUGINS)
-   for i,plugin in ipairs(OMH_PLUGINS) do
+   for i,plugin in ipairs(plugins) do
       omh.logger.df("Loading plugin %s", plugin)
       local mod = require(plugin)
       if type(mod) == "table" then
-         if OMH_CONFIG[plugin] ~= nil then
-            if mod.config == nil then
-               mod.config = {}
-            end
-            for k,v in pairs(OMH_CONFIG[plugin]) do --
-               mod.config[k] = v
-            end
+         if OMH_CONFIG[plugin] then
+            mod.config = OMH_CONFIG[plugin]
          end
-         -- If it has an init() function, call it
          if type(mod.init) == "function" then
             omh.logger.i(string.format("Initializing plugin %s", plugin))
             mod.init()
