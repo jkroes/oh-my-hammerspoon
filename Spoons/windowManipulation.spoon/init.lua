@@ -34,16 +34,6 @@ obj.quarters = {
 -- Prevent laggy animations (doesn't need to be optionally configured)
 hs.window.animationDuration = 0
 ----------------------------------------------------------------------
---- Utility function
-----------------------------------------------------------------------
-function obj.find(tbl, val)
-    for k, v in pairs(tbl) do
-        if v == val then return k end
-    end
-    return nil
-end
-
-----------------------------------------------------------------------
 --- Base window resizing and moving functions
 ----------------------------------------------------------------------
 -- Window cache for window maximize toggler

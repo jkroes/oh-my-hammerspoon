@@ -48,26 +48,26 @@ end)
 hs.loadSpoon('windowManipulation')
 local wM = s.windowManipulation
 local m = wM.maximize
-local s = wM.screens -- these will break if the names are ever changed in the config file. Need to make this robust.
+local s = wM.screens
 local h = wM.halves
 local t = wM.thirds
 local q = wM.quarters
 
 hyper:bind({}, m, function()
-  wM.resizeCurrentWindow(wM.find(wM,m))
+  wM.resizeCurrentWindow(omh.find(wM,m))
   sK:exitSequentialMode("hyper")
 end)
 
 local function assign(moveType)
   -- Create movement modes and bind to hyper
   local modalKey = moveType.modalKey; moveType.modalKey = nil
-  local modalPhrase = wM.find(wM, moveType)
+  local modalPhrase = omh.find(wM, moveType)
   sK:bindMode2Mode("hyper", modalKey, modalPhrase)
   local mode = sK.modes[modalPhrase]
   -- Bind keys to movement modes
   hs.fnutils.each(moveType, function(movement)
     mode:bind({}, movement, function()
-      wM.resizeCurrentWindow(wM.find(moveType, movement))
+      wM.resizeCurrentWindow(omh.find(moveType, movement))
       sK:exitSequentialMode(mode)
     end)
   end)
@@ -144,21 +144,21 @@ function lA:start()
 
   hs.fnutils.ieach(self,
   function(element)
-    launchMode:bind({}, element[1],
-    function()
-      local appName = element[2]
-      hs.application.launchOrFocus(appName)
-      -- hyper.watch = nil -- must come before exit()!!!
-      -- launchMode:exit()
-      sK:exitSequentialMode(launchMode)
-    end)
+    if type(element) ~= "function" then -- exclude methods
+      launchMode:bind({}, element[1],
+      function()
+        local appName = element[2]
+        hs.application.launchOrFocus(appName)
+        sK:exitSequentialMode(launchMode)
+      end)
+    end
   end)
 end
 
 lA:start()
 
 -- Launch epichrome
-lE = {
+local lE = {
   modalPhrase = "epichrome launch",
   modalKey = "e",
   {"g", "/Users/justinkroes/Applications/Gmail.app"},
@@ -173,13 +173,13 @@ function lE:start()
 
   hs.fnutils.ieach(self,
   function(element)
-    launchMode:bind({}, element[1],
-    function()
-      hs.application.launchOrFocus(element[2])
-      -- hyper.watch = nil -- must come before exit()!!!
-      -- launchMode:exit()
-      sK:exitSequentialMode(launchMode)
-    end)
+    if type(element) ~= "function" then -- exclude methods
+      launchMode:bind({}, element[1],
+      function()
+        hs.application.launchOrFocus(element[2])
+        sK:exitSequentialMode(launchMode)
+      end)
+    end
   end)
 end
 
@@ -193,58 +193,63 @@ hyper:bind({"cmd"}, "m", function()
   _,message,_ = hs.osascript.applescript(as)
   if message then
     hs.messages.iMessage("9167996697", message)
-    hs.messages.SMS("9167996697", message)
+    --hs.messages.SMS("9167996697", message)
   end
-  local timer = hs.timer.delayed.new(3, function() hs.application.get("Messages"):kill() end)
+  local timer = hs.timer.delayed.new(10, function() hs.application.get("Messages"):kill() end)
   timer:start()
 end)
 
 -- Cheatsheets
+local rC = {
+  modalPhrase = "cheaters",
+  modalKey = "t",
+  path = "~/Documents/cheatsheets/",
+  navkeys = {"a","s","d","f","g","h","j","k","l",";"},
+  exitAfterOpen = false,
+  git = "g"
+} -- Note that variable names (aside from path and navkeys) are names of
+-- individual subdirectories on path. Because the navigation keys may conflict
+-- with the foldername keys (e.g. git = "g") and the foldername mode is the
+-- parent of the navigation mode, the same key originally would both open a
+-- cheatfile and exit the parent foldername mode. I've tweaked
+-- bindModalKeys2ModeToggle(), so that instead of pressing the same key to exit
+-- foldername mode, you press "Q", which takes you back to cheat mode, where
+-- you can specify a new foldername.
 
--- rC = {
---   modalPhrase = "cheaters",
---   modalKey = "t",
---   path = "~/Documents/cheatsheets/",
---   navkeys = {"a","s","d","f","g","h","j","k","l",";"},
---   exitAfterOpen = false,
---   git = "g"
--- } -- Note that variable names (aside from path and navkeys) are names of individual subdirectories on path
--- -- Because the navigation keys may conflict with the foldername keys (e.g. git = "g") and the foldername mode is the parent of the navigation mode, the same key originally would both open a cheatfile and exit the parent foldername mode. I've tweaked bindModalKeys2ModeToggle(), so that instead of pressing the same key to exit foldername mode, you press "Q", which takes you back to cheat mode, where you can specify a new foldername.
---
--- function rC:start()
---   local path = self.path; self.path = nil
---   local navkeys = self.navkeys; self.navkeys = nil
---   local exitAfterOpen = self.exitAfterOpen; self.exitAfterOpen = nil
---   local modalPhrase = self.modalPhrase; self.modalPhrase = nil
---   local modalKey = self.modalKey; self.modalKey = nil
---   sK:bindMode2Mode("hyper", modalKey, modalPhrase)
---   local launchMode = sK.modes[modalPhrase]
---
---   hs.fnutils.each(self,
---   function(folderKey)
---     -- local child = hs.hotkey.modal.new() -- One modal hotkey per foldername specified in winmod.config
---     -- table.insert(omh.modes, child) -- hyper.watch only exits from modal objects stored in omh.modes, when the hyperkey is pressed.
---     local folderName = omh.find(self,folderKey)
---     print(folderKey)
---     sK:bindMode2Mode(modalPhrase, folderKey, folderName, false, true)
---
---     path = path .. folderName .. "/"
---     files = omh.listcheatfiles(path) -- Directories are assumed to have .pdf,.png, and/or .md, and the latter are ignored. Files are assumed to be named with letters, numbers, and/or underscores.
---
---     local child = sK.modes[folderName]
---     local numfiles = #files
---     for i = 1,numfiles do
---       child:bind({},navkeys[i],
---       function()
---         hs.execute("open " .. path .. files[i])
---         if exitAfterOpen then hyper.watch = nil; child:exit() end
---         -- Otherwise "Q" is bound to re-enter cheaters mode, while hyperkey will exit any foldername mode (e.g. "g" for git).
---       end)
---     end
---   end)
--- end
---
--- rC:start()
+function rC:start()
+  local path = self.path; self.path = nil
+  local navkeys = self.navkeys; self.navkeys = nil
+  local exitAfterOpen = self.exitAfterOpen; self.exitAfterOpen = nil
+  local modalPhrase = self.modalPhrase; self.modalPhrase = nil
+  local modalKey = self.modalKey; self.modalKey = nil
+  sK:bindMode2Mode("hyper", modalKey, modalPhrase)
+  local launchMode = sK.modes[modalPhrase]
+
+  temp = {}
+  hs.fnutils.each(self, function(folderKey)
+    if type(folderKey) ~= "function" then -- exclude methods
+      local folderName = omh.find(self,folderKey)
+      print(folderKey)
+      sK:bindMode2Mode(modalPhrase, folderKey, folderName, false, true)
+
+      path = path .. folderName .. "/"
+      files = omh.listcheatfiles(path) -- Directories are assumed to have .pdf,.png, and/or .md, and the latter are ignored. Files are assumed to be named with letters, numbers, and/or underscores.
+
+      local child = sK.modes[folderName]
+      local numfiles = #files
+      for i = 1,numfiles do
+        child:bind({},navkeys[i],
+        function()
+          hs.execute("open " .. path .. files[i])
+          if exitAfterOpen then sK:exitSequentialMode(child) end
+          -- Otherwise "Q" is bound to re-enter cheaters mode, while hyperkey will exit any foldername mode (e.g. "g" for git).
+        end)
+      end
+    end
+  end)
+end
+
+rC:start()
 
 -- http://www.hammerspoon.org/Spoons/WiFiTransitions.html
 -- http://www.hammerspoon.org/Spoons/URLDispatcher.html
