@@ -12,8 +12,6 @@ function reloadConfig(files)
    local doReload = false
    for _,file in pairs(files) do
       if file:sub(-4) == ".lua" and (not string.match(file, '/[.]#')) then
-         --omh.logger.df("Changed file = %s", file)
-         -- reloadConfig() needs to be defined within obj:start, or when called it will fail because
          doReload = true
       end
    end
@@ -25,7 +23,6 @@ end
 function obj:start()
 
   if self.auto_reload then
-    omh.logger.df("Setting up config auto-reload watcher on %s", hs_config_dir)
     configFileWatcher = hs.pathwatcher.new(hs.configdir, reloadConfig)
     configFileWatcher:start()
   end

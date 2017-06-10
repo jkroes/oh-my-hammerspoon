@@ -1,16 +1,16 @@
 -- Window management
 --- Diego Zamboni <diego@zzamboni.org>
 
-local mod = {}
+local obj = {}
 
-mod.config = {
+obj.config = {
 }
 
 --- Initialize the module
-function mod.init()
+function obj.init()
 
   -- Launch and focus apps
-  local c = mod.config
+  local c = obj.config
   --print(hs.inspect(c))
   local modalPhrase = c.modalPhrase; c.modalPhrase = nil
   local modalKey = c. modalKey; c.modalKey = nil
@@ -61,4 +61,4 @@ function mod.init()
 
 end
 
-return mod
+return obj

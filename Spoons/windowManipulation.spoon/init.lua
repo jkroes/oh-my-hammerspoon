@@ -1,23 +1,57 @@
 --- Diego Zamboni <diego@zzamboni.org>
 -- Window management
 
-local mod = {}
+local obj = {}
 
-mod.config = {
+obj.maximize = "m"
+obj.screens = {
+  modalKey = "s",
+  screen_right = "l",
+  screen_left = "j"
+}
+obj.halves = {
+  modalKey = "h",
+  left = "j",
+  right = "l",
+  top = "i",
+  bottom = "m"
+}
+obj.thirds = {
+  modalKey = "f19", -- I don't use thirds, so I mapped it off-keyboard
+  third_left = "j",
+  third_right = "l",
+  third_up = "i",
+  third_down = "m"
+}
+obj.quarters = {
+  modalKey = "q",
+  bottom_left = "j",
+  bottom_right = "k",
+  top_left = "u",
+  top_right = "i"
 }
 
 -- Prevent laggy animations (doesn't need to be optionally configured)
 hs.window.animationDuration = 0
-
--- Window cache for window maximize toggler
--- (persists between function calls)
-local frameCache = {}
+----------------------------------------------------------------------
+--- Utility function
+----------------------------------------------------------------------
+function obj.find(tbl, val)
+    for k, v in pairs(tbl) do
+        if v == val then return k end
+    end
+    return nil
+end
 
 ----------------------------------------------------------------------
 --- Base window resizing and moving functions
 ----------------------------------------------------------------------
+-- Window cache for window maximize toggler
+-- (persists between function calls)
+local frameCache = {}
+
 -- Get the horizontal third of the screen in which a window is at the moment
-function get_horizontal_third(win)
+local function get_horizontal_third(win)
    local frame=win:frame()
    local screenframe=win:screen():frame()
    local relframe=hs.geometry(frame.x-screenframe.x, frame.y-screenframe.y, frame.w, frame.h)
@@ -28,7 +62,7 @@ function get_horizontal_third(win)
 end
 
 -- Get the vertical third of the screen in which a window is at the moment
-function get_vertical_third(win)
+local function get_vertical_third(win)
    local frame=win:frame()
    local screenframe=win:screen():frame()
    local relframe=hs.geometry(frame.x-screenframe.x, frame.y-screenframe.y, frame.w, frame.h)
@@ -40,7 +74,7 @@ end
 
 
 -- Resize current window to different parts of the screen
-function mod.resizeCurrentWindow(how)
+function obj.resizeCurrentWindow(how)
   local win = hs.window.focusedWindow()
   local screen = win:screen()
   local x = 0
@@ -118,59 +152,4 @@ function mod.resizeCurrentWindow(how)
   end
 end
 
---- Initialize the module
-function mod.init()
-
-  local c = mod.config
-  local m = c.maximize
-  local z = c.zoom
-  local sW = c.switchWindows
-  local s = c.screens -- these will break if the names are ever changed in the config file. Need to make this robust.
-  local h = c.halves
-  local t = c.thirds
-  local q = c.quarters
-  local hyper = omh.modes.hyper
-
-  hyper:bind({}, m, function()
-    mod.resizeCurrentWindow(omh.find(c,m))
-    hyper.watch = nil; hyper:exit()
-  end)
-
-  hyper:bind({}, sW, function()
-    -- print(hs.inspect(hs.keycodes.map))
-    hs.eventtap.keyStroke({"cmd"}, "`")
-    --hyper.watch = nil; hyper:exit()
-  end)
-
-  hyper:bind({}, z, function()
-    local frontApp = hs.application.frontmostApplication()
-    local zoom = {"Window", "Zoom"}
-    frontApp:selectMenuItem(zoom)
-    frontApp:selectMenuItem(zoom) -- a second time returns to previous size, but now the window will be on-screen
-    hyper.watch = nil; hyper:exit()
-  end)
-
-  local function assign(moveType, idx)
-    -- Create movement modes and bind to hyper
-    local modalKey = moveType.modalKey; moveType.modalKey = nil
-    local modalPhrase = omh.find(c, moveType)
-    omh.bindMode2Mode(hyper, modalKey, modalPhrase)
-    local mode = omh.modes[modalPhrase]
-    -- Bind keys to movement modes
-    hs.fnutils.each(moveType, function(movement)
-      mode:bind({}, movement, function()
-        mod.resizeCurrentWindow(omh.find(moveType, movement))
-        hyper.watch = nil -- must come before exit()!!!
-        mode:exit()
-      end)
-    end)
-  end
-
-  assign(s)
-  assign(h)
-  assign(t)
-  assign(q)
-
-end
-
-return mod
+return obj
