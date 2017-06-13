@@ -331,6 +331,17 @@ sK.modes["layout"]:bind({}, "1", function()
   sK:exitSequentialMode("layout")
  end)
 
+-- Simpler Layouts
+hyper:bind({}, "y", function()
+  hs.mjomatic.go({
+  "CCCCCCCCCCCCCiiiiiiiiiii",
+  "",
+  "C Google Chrome",
+  "i iTerm2"})
+  sK:exitSequentialMode("hyper")
+end)
+
+
 
 -- http://www.hammerspoon.org/Spoons/WiFiTransitions.html
 -- http://www.hammerspoon.org/Spoons/URLDispatcher.html
