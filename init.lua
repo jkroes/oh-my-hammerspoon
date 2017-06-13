@@ -1,4 +1,10 @@
+-- print(hs.inspect(hs.keycodes.map))
+
+
 local omh = require('omh-lib')
+
+-- Show enabled hotkeys
+hs.hotkey.showHotkeys({"cmd","alt","ctrl"}, "s")
 
 -- Reload
 hs.loadSpoon('reloadConfig')
@@ -10,11 +16,12 @@ rC:start()
 
 -- Hyper
 hs.loadSpoon('sequentialKeys')
-local sK = s.sequentialKeys
+sK = s.sequentialKeys
 --sK.notifications = false
 sK:bindMode2Mode("hyper", "f13", "HYPER", true) -- bound to caps lock via
 -- Karabiner Elements
 local hyper = sK.modes.hyper
+
 
 -- Clipboard
 hs.loadSpoon('TextClipboardHistory')
@@ -30,9 +37,8 @@ end)
 
 -- Switch windows
 hyper:bind({}, "space", function()
-  -- print(hs.inspect(hs.keycodes.map))
   hs.eventtap.keyStroke({"cmd"}, "`")
-  sK:exitSequentialMode("hyper")
+  --sK:exitSequentialMode("hyper")
 end)
 
 -- Zoom
@@ -40,7 +46,9 @@ hyper:bind({}, "z", function()
   local frontApp = hs.application.frontmostApplication()
   local zoom = {"Window", "Zoom"}
   frontApp:selectMenuItem(zoom)
-  --frontApp:selectMenuItem(zoom) -- a second time returns to previous size, but now the window will be on-screen
+  --frontApp:selectMenuItem(zoom)
+  -- a second time returns to previous size, but now the window will be
+  -- on-screen
   sK:exitSequentialMode("hyper")
 end)
 
@@ -79,12 +87,10 @@ assign(t)
 assign(q)
 
 -- Launch apps
--- Window management
---- Diego Zamboni <diego@zzamboni.org>
 
 local lA = {
   modalPhrase = "app launch",
-  modalKey = "l",
+  modalKey = "a",
   {"a", "Atom"},
   {"c", "Calendar"},
   {"d", "Dash"},
@@ -229,7 +235,6 @@ function rC:start()
   hs.fnutils.each(self, function(folderKey)
     if type(folderKey) ~= "function" then -- exclude methods
       local folderName = omh.find(self,folderKey)
-      print(folderKey)
       sK:bindMode2Mode(modalPhrase, folderKey, folderName, false, true)
 
       path = path .. folderName .. "/"
@@ -250,6 +255,82 @@ function rC:start()
 end
 
 rC:start()
+
+-- Grids
+local shift = 0.075
+local gridSize = '4x4'
+local function setGrid()
+  local screen = hs.screen.mainScreen()
+  local frame = screen:frame()
+
+  if screen:name() == "Color LCD" then -- cracked screen
+    frame = screen:toUnitRect(frame)
+    frame._x = frame._x + shift; frame._w = frame._w - shift
+    frame = screen:fromUnitRect(frame)
+  end
+  hs.grid.setGrid(gridSize, screen, frame)
+end
+
+local function gridCrack()
+  setGrid()
+  hs.grid.toggleShow()
+end
+
+hyper:bind({},"'",gridCrack) -- toggle fails if using any of the main keyboard
+-- keys, because they're disabled; see contents of hs.grid.HINTS
+
+-- I don't automatically exit hyper after moving a window in the grid
+-- If only a single window is selected, set to exit grid mode automatically
+-- Otherwise, need to hit key for grid toggle before key for hyper
+-- because hyper first will disable grid toggle without exiting first
+-- THE ABOVE CAN BE IMPLEMENTED BY INSERTING hs.grid.toggleShow() INTO
+-- Hyper's exit callback
+-- Switching windows (currently bound to 'space') doesn't exit hyper
+-- Use tab to switch between windows
+-- Press a letter twice to resize, or 2 letters to resize in sub-grid
+-- that connects these letters (play around with a 4x4 grid to see)
+-- To move without resize, letter-ENTER
+-- Arrow keys move b/w screens
+
+-- local hints = {}
+-- for _,idx in ipairs({3,4,5,2,1}) do
+--   table.insert(hints, hs.grid.HINTS[idx])
+-- end
+--
+
+
+
+-- Layouts
+sK:bindMode2Mode("hyper", "l", "layout")
+local allScreens = hs.screen.allScreens()
+if #allScreens > 1 then
+  local programmingDual = {
+    {"Atom", nil, allScreens[1], hs.layout.left50},
+    {"Hammerspoon", nil, allScreens[1], {1/2,1/2,1/2,1/2}},
+    {"iTerm2", nil, allScreens[1], {1/2,0,1/2,1/2}},
+    {"nvALT", nil, allScreens[1], {1/2,1/2,1/2,1/2}},
+    {"Dash", nil, allScreens[2], {shift,1/2,1-shift,1/2}},
+    {"Google Chrome", nil, allScreens[2], {shift,0,1-shift,1/2}},
+  }
+  sK.modes["layout"]:bind({}, "2", function()
+    hs.layout.apply(programmingDual)
+    sK:exitSequentialMode("layout")
+  end)
+end
+
+local programming = {
+  {"Atom", nil, allScreens[1], {shift,0,(1-shift)/2,1}},
+  {"Hammerspoon", nil, allScreens[1], {shift+(1-shift)/2,1/2,(1-shift)/2,1/2}},
+  {"nvALT", nil, allScreens[1], {shift+(1-shift)/2,1/2,(1-shift)/2,1/2}},
+  {"iTerm2", nil, allScreens[1], {shift+(1-shift)/2,0,(1-shift)/2,1/2}},
+  {"Dash", nil, allScreens[1], {shift+(1-shift)/2,0,1-(shift+(1-shift)/2),1}},
+  {"Google Chrome", nil, allScreens[1], {shift,0,(1-shift)/2,1}},
+}
+sK.modes["layout"]:bind({}, "1", function()
+  hs.layout.apply(programming)
+  sK:exitSequentialMode("layout")
+ end)
+
 
 -- http://www.hammerspoon.org/Spoons/WiFiTransitions.html
 -- http://www.hammerspoon.org/Spoons/URLDispatcher.html
