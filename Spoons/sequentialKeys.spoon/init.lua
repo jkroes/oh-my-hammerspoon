@@ -8,11 +8,17 @@ obj.notifications = true
 ----Tab,childkey,tab: Enter hyper, enter child, exit child
 ----Tab, childkey, childkey: Enter hyper, enter child, exit hyper, enter hyper
 ----Expected behavior for 3+-deep modal chains, such as cheaters
-function obj:bindMode2Mode(parent, key, phrase, createHyper, cheats)
-  local hyper = self.modes.hyper
-  local parent = self.modes[parent]
-  local child
-  if not createHyper then
+function obj:bindModes(arg)
+  local modes = self.modes
+  local hyper = modes.hyper
+  local parent = arg.parent
+  if type(parent) == 'string' then parent = modes[arg.parent] end
+  local child -- forward declaration
+  local key = arg.key
+  local phrase = arg.phrase
+  local cheats = arg.cheats
+
+  if parent then
     child = hs.hotkey.modal.new()
     self.modes[phrase] = child
     parent:bind({}, key, function() parent:exit(); child:enter() end)
@@ -54,10 +60,14 @@ function obj:bindMode2Mode(parent, key, phrase, createHyper, cheats)
 end
 
 function obj:exitSequentialMode(mode)
-  self.modes.hyper.watch = nil
-  if type(mode) == 'string' then
-    self.modes[mode]:exit()
-  elseif type(mode) == 'table' then
+  local hyper = self.modes.hyper
+  hyper.watch = nil
+  -- local mode = mode
+  if not mode then -- does this need a local variable, if the param is nil?
+    mode = hyper
+    hyper:exit()
+  else
+    if type(mode) == 'string' then mode = self.modes[mode] end
     mode:exit()
   end
 end

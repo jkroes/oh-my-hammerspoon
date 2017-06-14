@@ -5,26 +5,22 @@ local obj = {}
 
 obj.maximize = "m"
 obj.screens = {
-  modalKey = "s",
   screen_right = "l",
   screen_left = "j"
 }
 obj.halves = {
-  modalKey = "h",
   left = "j",
   right = "l",
   top = "i",
   bottom = "m"
 }
 obj.thirds = {
-  modalKey = "f19", -- I don't use thirds, so I mapped it off-keyboard
   third_left = "j",
   third_right = "l",
   third_up = "i",
   third_down = "m"
 }
 obj.quarters = {
-  modalKey = "q",
   bottom_left = "j",
   bottom_right = "k",
   top_left = "u",
