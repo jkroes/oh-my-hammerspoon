@@ -3,43 +3,59 @@
 -- Show enabled hotkeys
 hs.hotkey.showHotkeys({"cmd","alt","ctrl"}, "s")
 
--- Load spoons
-hs.loadSpoon('reloadConfig')
-hs.loadSpoon('sequentialKeys')
-hs.loadSpoon('TextClipboardHistory')
-hs.loadSpoon('windowManipulation')
--- http://www.hammerspoon.org/Spoons/WiFiTransitions.html
--- http://www.hammerspoon.org/Spoons/URLDispatcher.html
-
--- Localize and truncate library, spoons, and modules
+-- Library
 local omh = require('omh-lib')
 local find = omh.find
 
+-- Modules
 local fnutils = hs.fnutils
 local each = fnutils.each
 local partial = fnutils.partial
 local concat = fnutils.concat
+
 local eventtap = hs.eventtap
 local keyStroke = eventtap.keyStroke
+
 local app = hs.application
 local frontmost = app.frontmostApplication
+local watcher = app.watcher
+local get = app.get
+local launchOrFocus = app.launchOrFocus
+
 local screen = hs.screen
 local allScreens = screen.allScreens
+local mainScreen = screen.mainScreen
 
+local osascript = hs.osascript
+local applescript = osascript.applescript
+
+local iMessage = hs.messages.iMessage
+
+local grid = hs.grid
+
+-- Other local variables
+local all = allScreens()
+local shift = 0.075
+
+-- Spoons
+hs.loadSpoon('reloadConfig')
+hs.loadSpoon('sequentialKeys')
+hs.loadSpoon('TextClipboardHistory')
+hs.loadSpoon('windowManipulation')
 local s = spoon
 local rC = s.reloadConfig
 local sK = s.sequentialKeys
+local bindModes = partial(sK.bindModes, sK)
+local exitMode = partial(sK.exitSequentialMode, sK)
 local modes = sK.modes
 local hyper = modes.hyper
-local bindModes = partial(sK.bindModes, sK)
 local tCH = s.TextClipboardHistory
 local wM = s.windowManipulation
 local lE = {}
 local lA = {}
-lay = {}
-
-local all = allScreens()
-local shift = 0.075
+local lay = {}
+-- http://www.hammerspoon.org/Spoons/WiFiTransitions.html
+-- http://www.hammerspoon.org/Spoons/URLDispatcher.html
 
 -- reloadConfig
 rC.auto_reload = true
@@ -52,7 +68,7 @@ tCH.paste_on_select = true
 tCH.honor_ignoredidentifiers = true -- default; just in case
 tCH:start()
 
--- Modal key bindings
+-- Determine modal sequence
 wM.screens.phrase=find(wM, wM.screens)
 wM.halves.phrase=find(wM, wM.halves)
 wM.thirds.phrase=find(wM, wM.thirds)
@@ -60,7 +76,6 @@ wM.quarters.phrase=find(wM, wM.quarters)
 lE.phrase = "epichrome launch"
 lA.phrase = "app launch"
 lay.phrase = "layout"
-
 
 bindModes{key="f13", phrase="HYPER"} -- named args require brackets
  -- bound to caps lock via Karabiner Elements
@@ -73,8 +88,24 @@ bindModes{parent="hyper", key="a", phrase=lA.phrase}
 bindModes{parent="hyper", key="a", phrase=lA.phrase}
 bindModes{parent="hyper", key="l", phrase=lay.phrase}
 
--- Key bindings
-local hyperArgs = {
+-- Bind keys to modes
+local hyperKeys -- forward declaration
+local function assign(keyDict, fn)
+  local mode; if keyDict == hyperKeys then mode = hyper
+  else mode = modes[keyDict.phrase]; keyDict.phrase = nil end
+
+  each(keyDict, function(element)
+    local mod = {} -- default key modifier
+    local key; if element.key then key = element.key -- all else besides...
+    else key = element end -- ...window manipulation
+    if type(key) == "table" then mod=key[1]; key=key[2] end
+    if element.fn then fun = element.fn -- hyper
+    else fun = partial(fn, keyDict, element, mode) end -- not hyper
+    mode:bind(mod, key, fun)
+  end)
+end --
+
+hyperKeys = {
   {
     key="space",
     fn=partial(keyStroke, {"cmd"}, "`")
@@ -86,85 +117,82 @@ local hyperArgs = {
       local zoom = {"Window", "Zoom"}
       frontApp:selectMenuItem(zoom)
       frontApp:selectMenuItem(zoom)
-      sK:exitSequentialMode()
+      exitMode()
     end
   }, -- zoom to retrieve off-screen windows
   {
     key='v',
     fn=function()
       tCH:toggleClipboard()
-      sK:exitSequentialMode()
+      exitMode()
     end
   }, -- contextual copy-paste
   {
     key='m',
     fn=function()
       wM.resizeCurrentWindow(find(wM,wM.maximize))
-      sK:exitSequentialMode()
+      exitMode()
     end
   }, -- maximize focused window
   {
     key={{"cmd"},"m"},
     fn=function()
-      sK:exitSequentialMode()
+      exitMode()
       local as = 'set theResponse to display dialog "Enter message" default '
       .. 'answer "" with icon note buttons {"Cancel", "Continue"} default '
       .. 'button "Continue" \
       return (text returned of theResponse)'
-      _,message,_ = hs.osascript.applescript(as)
+      _,message,_ = applescript(as)
       if message then
 
         local function messageWatch(appName, eventType, appObject)
-          if eventType == hs.application.watcher.launched or
-          eventType == hs.application.watcher.activated then
+          if eventType == watcher.launched or
+          eventType == watcher.activated then
             if appName == "Messages" then
-              hs.messages.iMessage("9167996697", message)
-              hs.application.get("Messages"):kill()
+              iMessage("9167996697", message)
+              get("Messages"):kill()
             end
           end
         end
 
-        local msgWatcher = hs.application.watcher.new(messageWatch)
+        local msgWatcher = watcher.new(messageWatch)
         msgWatcher:start()
 
-        hs.application.launchOrFocus("Messages") -- if application
+        launchOrFocus("Messages") -- if application
         -- is closed, then first text will only open the app, not send
 
       end
     end
   },
-  {
-    key = "y",
-    fn=function()
-      hs.mjomatic.go({
-      "CCCCCCCCCCCCCiiiiiiiiiii",
-      "",
-      "C Google Chrome",
-      "i iTerm2"})
-      sK:exitSequentialMode()
-    end
-  },
+  -- {
+  --   key = "y",
+  --   fn=function()
+  --     hs.mjomatic.go({
+  --     "CCCCCCCCCCCCCiiiiiiiiiii",
+  --     "",
+  --     "C Google Chrome",
+  --     "i iTerm2"})
+  --     exitMode()
+  --   end
+  -- },
   {
     key = "'",
     fn=function()
       local gridSize = '4x4'
       local function setGrid()
-        local screen = hs.screen.mainScreen();
-        local frame = screen:frame()
+        local main = mainScreen();
+        local frame = main:frame()
 
-        if screen:name() == "Color LCD" then -- cracked screen
-          frame = screen:toUnitRect(frame)
+        if main:name() == "Color LCD" then -- cracked screen
+          frame = main:toUnitRect(frame)
           frame._x = frame._x + shift; frame._w = frame._w - shift
-          frame = screen:fromUnitRect(frame)
+          frame = main:fromUnitRect(frame)
         end
-        hs.grid.setGrid(gridSize, screen, frame)
+        grid.setGrid(gridSize, main, frame)
       end
 
-      local function gridCrack()
-        setGrid()
-        hs.grid.toggleShow()
-      end
-      gridCrack()
+      setGrid()
+      grid.toggleShow()
     end
   } -- toggle fails if using any of the main keyboard
   -- keys, because they're disabled; see contents of hs.grid.HINTS
@@ -183,14 +211,18 @@ local hyperArgs = {
   -- Arrow keys move b/w screens
 
 }
-
-
+assign(hyperKeys)
 
 concat(lE,
 {
   { key = "g", app = "/Users/justinkroes/Applications/Gmail.app" },
   { key = "h", app = "/Users/justinkroes/Applications/GitHub.app" },
 })
+local lefn = function(dict, element, mode)
+  launchOrFocus(element.app)
+  exitMode(mode)
+end
+assign(lE, lefn)
 
 concat(lA,
 {
@@ -198,7 +230,6 @@ concat(lA,
   { key = "c", app = "Calendar" },
   { key = "d", app = "Dash" },
   { key = "e", app = "Microsoft Excel" },
-  { key = "f", app = "Finder" },
   { key = "g", app = "Google Chrome" },
   { key = "h", app = "Hammerspoon" },
   { key = "i", app = "iTerm" },
@@ -209,74 +240,9 @@ concat(lA,
   { key = "s", app = "Spotify" },
   { key = "w", app = "Microsoft Word" },
   { key = "z", app = "Zotero" },
-}) -- Get a list of all running app names
--- hs.fnutils.each(hs.application.runningApplications(), function(app)
--- print(app:title()) end)
--- Apparently we should use the actual app name as shown in finder, and an
--- absolute path can also be used. Not the results of the code above...)
-
-concat(lay,
-{
-  {
-    key = "2", -- dual-screen
-    layout = {
-      {"Atom", nil, all[1], hs.layout.left50},
-      {"Hammerspoon", nil, all[1], {1/2,1/2,1/2,1/2}},
-      {"iTerm2", nil, all[1], {1/2,0,1/2,1/2}},
-      {"nvALT", nil, all[1], {1/2,1/2,1/2,1/2}},
-      {"Dash", nil, all[2], {shift,1/2,1-shift,1/2}},
-      {"Google Chrome", nil, all[2], {shift,0,1-shift,1/2}},
-    }
-  },
-  {
-    key = "1", -- single-screen
-    layout = {
-      {"Atom", nil, all[1], {shift,0,(1-shift)/2,1}},
-      {"Hammerspoon", nil, all[1], {shift+(1-shift)/2,1/2,(1-shift)/2,1/2}},
-      {"nvALT", nil, all[1], {shift+(1-shift)/2,1/2,(1-shift)/2,1/2}},
-      {"iTerm2", nil, all[1], {shift+(1-shift)/2,0,(1-shift)/2,1/2}},
-      {"Dash", nil, all[1], {shift+(1-shift)/2,0,1-(shift+(1-shift)/2),1}},
-      {"Google Chrome", nil, all[1], {shift,0,(1-shift)/2,1}},
-    }
-  }
-})
-
-local function assign(keyDict, fn)
-  local mode
-  if keyDict == hyperArgs then mode = hyper
-  else
-    mode = modes[keyDict.phrase]; keyDict.phrase = nil
-  end
-
-  each(keyDict, function(binding)
-    local mod = {} -- default
-    local key; if binding.key then key = binding.key -- all else besides...
-    else key = binding end -- ...window manipulation
-    if type(key) == "table" then mod=key[1]; key=key[2] end
-    if binding.fn then fun = binding.fn -- hyper
-    else fun = partial(fn, keyDict, binding, mode) end -- not hyper
-    mode:bind(mod, key, fun)
-  end)
-end -- must come after hyperArgs def, because is an upvalue here
-
-assign(hyperArgs)
-
-local wmfn = function(dict, windowKey, windowMode)
-  wM.resizeCurrentWindow(find(dict, windowKey))
-  sK:exitSequentialMode(windowMode)
-end
-assign(wM.screens, wmfn)
-assign(wM.halves, wmfn)
-assign(wM.thirds, wmfn)
-assign(wM.quarters, wmfn)
-
-local lefn = function(dict, binding, mode)
-  hs.application.launchOrFocus(binding.app)
-  sK:exitSequentialMode(mode)
-end
-assign(lE, lefn)
-
-local lafn = function(dict, binding, mode)
+  { key = ".", app = "Adobe Acrobat Reader DC" },
+}) -- App names, or absolute paths, as shown in Finder/terminal, not app titles
+local lafn = function(dict, element, mode)
   -- local function moveWindow(corner, delay1, delay2, delay3)
   --   local timer1 = hs.timer.delayed.new(delay1, function()
   --     keyStroke({},"f13")
@@ -292,36 +258,64 @@ local lafn = function(dict, binding, mode)
   --   timer3:start()
   -- end
 
-  local function applicationWatcher(appName, eventType, appObject)
-    if eventType == hs.application.watcher.launched then
-      -- if appName == "iTerm2" then
-      --   moveWindow("j",0.2,0.5,0.8)
-      -- elseif appName == "Dash" then
-      --   moveWindow("u",2,3,4)
-      -- end
-    elseif eventType == hs.application.watcher.activated then
-      appObject:selectMenuItem({"Window", "Bring All to Front"})
-    end
-  end
-
-  local appWatcher = hs.application.watcher.new(applicationWatcher)
-  appWatcher:start()
-  hs.application.launchOrFocus(binding.app)
-  sK:exitSequentialMode(mode)
+  -- local function applicationWatcher(appName, eventType, appObject)
+  --   if eventType == hs.application.watcher.launched then
+  --     if appName == "iTerm2" then
+  --       moveWindow("j",0.2,0.5,0.8)
+  --     elseif appName == "Dash" then
+  --       moveWindow("u",2,3,4)
+  --     end
+  --   elseif eventType == hs.application.watcher.activated then
+  --     appObject:selectMenuItem({"Window", "Bring All to Front"})
+  --   end
+  -- end
+  --
+  -- local appWatcher = hs.application.watcher.new(applicationWatcher)
+  -- appWatcher:start()
+  launchOrFocus(element.app)
+  exitMode(mode)
 end
 assign(lA, lafn)
 
-local layfn = function(dict, binding, mode)
-  hs.layout.apply(binding.layout)
-  sK:exitSequentialMode(mode)
+concat(lay,
+{
+  {
+    key = "2", -- dual-screen
+    layout = {
+      {"Atom", nil, all[1], hs.layout.left50},
+      {"Hammerspoon", nil, all[1], {1/2,1/2,1/2,1/2}},
+      {"iTerm2", nil, all[1], {1/2,0,1/2,1/2}},
+      {"nvALT", nil, all[1], {1/2,1/2,1/2,1/2}},
+      {"Dash", nil, all[2], {shift,1/2,1-shift,1/2}},
+      {"Google Chrome", nil, all[2], {shift,0,1-shift,1/2}},
+    }
+  },
+  { key = "1", -- single-screen
+    layout = {
+      {"Atom", nil, all[1], {shift,0,(1-shift)/2,1}},
+      {"Hammerspoon", nil, all[1], {shift+(1-shift)/2,1/2,(1-shift)/2,1/2}},
+      {"nvALT", nil, all[1], {shift+(1-shift)/2,1/2,(1-shift)/2,1/2}},
+      {"iTerm2", nil, all[1], {shift+(1-shift)/2,0,(1-shift)/2,1/2}},
+      {"Dash", nil, all[1], {shift+(1-shift)/2,0,1-(shift+(1-shift)/2),1}},
+      {"Google Chrome", nil, all[1], {shift,0,(1-shift)/2,1}},
+    }
+  }
+})
+local layfn = function(dict, element, mode)
+  hs.layout.apply(element.layout)
+  exitMode(mode)
 end
 assign(lay, layfn)
 
-
-
-
-
-
+-- Consider using code here: https://aaronlasseigne.com/2016/02/16/switching-from-slate-to-hammerspoon/
+local wmfn = function(dict, windowKey, windowMode)
+  wM.resizeCurrentWindow(find(dict, windowKey))
+  exitMode(windowMode)
+end
+assign(wM.screens, wmfn)
+assign(wM.halves, wmfn)
+assign(wM.thirds, wmfn)
+assign(wM.quarters, wmfn)
 
 
 -- Cheatsheets
@@ -365,7 +359,7 @@ assign(lay, layfn)
 --         child:bind({},navkeys[i],
 --         function()
 --           hs.execute("open " .. path .. files[i])
---           if exitAfterOpen then sK:exitSequentialMode(child) end
+--           if exitAfterOpen then exitMode(child) end
 --           -- Otherwise "Q" is bound to re-enter cheaters mode, while hyperkey will exit any foldername mode (e.g. "g" for git).
 --         end)
 --       end
