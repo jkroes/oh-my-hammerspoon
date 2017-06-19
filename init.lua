@@ -1,4 +1,5 @@
 -- print(hs.inspect(hs.keycodes.map))
+-- package.path = package.path..';<path>?.lua'
 
 -- Show enabled hotkeys
 hs.hotkey.showHotkeys({"cmd","alt","ctrl"}, "s")
@@ -81,10 +82,9 @@ bindModes{key="f13", phrase="HYPER"} -- named args require brackets
  -- bound to caps lock via Karabiner Elements
 bindModes{parent="hyper", key="s", phrase=wM.screens.phrase}
 bindModes{parent="hyper", key="h", phrase=wM.halves.phrase}
-bindModes{parent="hyper", key="f19", phrase=wM.thirds.phrase}
+bindModes{parent="hyper", key="t", phrase=wM.thirds.phrase}
 bindModes{parent="hyper", key="q", phrase=wM.quarters.phrase}
 bindModes{parent="hyper", key="e", phrase=lE.phrase}
-bindModes{parent="hyper", key="a", phrase=lA.phrase}
 bindModes{parent="hyper", key="a", phrase=lA.phrase}
 bindModes{parent="hyper", key="l", phrase=lay.phrase}
 
@@ -286,8 +286,10 @@ concat(lay,
       {"Hammerspoon", nil, all[1], {1/2,1/2,1/2,1/2}},
       {"iTerm2", nil, all[1], {1/2,0,1/2,1/2}},
       {"nvALT", nil, all[1], {1/2,1/2,1/2,1/2}},
-      {"Dash", nil, all[2], {shift,1/2,1-shift,1/2}},
-      {"Google Chrome", nil, all[2], {shift,0,1-shift,1/2}},
+      -- {"Dash", nil, all[2], {shift,1/2,1-shift,1/2}},
+      -- {"Google Chrome", nil, all[2], {shift,0,1-shift,1/2}},
+      {"Dash", nil, all[2], {shift,0,(1-shift)/2,1}},
+      {"Google Chrome", nil, all[2], {(1-shift)/2+shift,0,(1-shift)/2,1}},
     }
   },
   { key = "1", -- single-screen

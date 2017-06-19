@@ -42,8 +42,8 @@ local function get_horizontal_third(win)
    local screenframe=win:screen():frame()
    local relframe=hs.geometry(frame.x-screenframe.x, frame.y-screenframe.y, frame.w, frame.h)
    local third = math.floor(3.01*relframe.x/screenframe.w)
-   logger.df("Screen frame: %s", screenframe)
-   logger.df("Window frame: %s, relframe %s is in horizontal third #%d", frame, relframe, third)
+   --logger.df("Screen frame: %s", screenframe)
+   --logger.df("Window frame: %s, relframe %s is in horizontal third #%d", frame, relframe, third)
    return third
 end
 
@@ -53,8 +53,8 @@ local function get_vertical_third(win)
    local screenframe=win:screen():frame()
    local relframe=hs.geometry(frame.x-screenframe.x, frame.y-screenframe.y, frame.w, frame.h)
    local third = math.floor(3.01*relframe.y/screenframe.h)
-   logger.df("Screen frame: %s", screenframe)
-   logger.df("Window frame: %s, relframe %s is in vertical third #%d", frame, relframe, third)
+   --logger.df("Screen frame: %s", screenframe)
+   --logger.df("Window frame: %s, relframe %s is in vertical third #%d", frame, relframe, third)
    return third
 end
 
