@@ -1,12 +1,20 @@
 -- print(hs.inspect(hs.keycodes.map))
--- package.path = package.path..';<path>?.lua'
 
 -- Show enabled hotkeys
 hs.hotkey.showHotkeys({"cmd","alt","ctrl"}, "s")
 
+-- Convert capslock to hyper key (replacement for Karabiner-Elements)
+package.path = package.path..';foundation/?.lua'
+local FRemap = require('foundation_remapping')
+local remapper = FRemap.new()
+remapper:remap('capslock', 'f13')
+remapper:register() -- NOTICE: Remapping is effective until system termination
+-- even after quit Hammerspoon. Use remapper:unregister()
+
 -- Library
 local omh = require('omh-lib')
 local find = omh.find
+
 
 -- Modules
 local fnutils = hs.fnutils
@@ -44,32 +52,33 @@ hs.loadSpoon('sequentialKeys')
 hs.loadSpoon('TextClipboardHistory')
 hs.loadSpoon('windowManipulation')
 local s = spoon
-local rC = s.reloadConfig
-local sK = s.sequentialKeys
-local bindModes = partial(sK.bindModes, sK)
-local exitMode = partial(sK.exitSequentialMode, sK)
-local modes = sK.modes
-local hyper = modes.hyper
-local tCH = s.TextClipboardHistory
-local wM = s.windowManipulation
-local lE = {}
-local lA = {}
-local lay = {}
 -- http://www.hammerspoon.org/Spoons/WiFiTransitions.html
 -- http://www.hammerspoon.org/Spoons/URLDispatcher.html
 
 -- reloadConfig
+local rC = s.reloadConfig
 rC.auto_reload = true
 rC.manual_reload_key = {} -- disable manual reload
 rC:start() -- start filepath watcher
 
 -- Clipboard
+local tCH = s.TextClipboardHistory
 tCH.show_in_menubar = false
 tCH.paste_on_select = true
 tCH.honor_ignoredidentifiers = true -- default; just in case
 tCH:start()
 
 -- Determine modal sequence
+local sK = s.sequentialKeys
+local bindModes = partial(sK.bindModes, sK)
+local exitMode = partial(sK.exitSequentialMode, sK)
+local modes = sK.modes
+local hyper = modes.hyper
+
+local lE = {}
+local lA = {}
+local lay = {}
+local wM = s.windowManipulation
 wM.screens.phrase=find(wM, wM.screens)
 wM.halves.phrase=find(wM, wM.halves)
 wM.thirds.phrase=find(wM, wM.thirds)
