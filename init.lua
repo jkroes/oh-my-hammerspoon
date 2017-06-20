@@ -11,10 +11,16 @@ remapper:remap('capslock', 'f13')
 remapper:register() -- NOTICE: Remapping is effective until system termination
 -- even after quit Hammerspoon. Use remapper:unregister()
 
+-- Testing hyper key library
+-- package.path = package.path..';hyperex/?.lua'
+-- local hyperex = require('hyperex')
+-- hx = hyperex.new('f1'):withMessage("testEnter","testExit",0.5)
+-- hx:sticky('toggle')
+-- hx:bind('x'):to(function() hs.eventtap.keyStroke({}, 'x') end)
+
 -- Library
 local omh = require('omh-lib')
 local find = omh.find
-
 
 -- Modules
 local fnutils = hs.fnutils
