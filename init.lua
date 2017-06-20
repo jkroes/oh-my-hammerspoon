@@ -11,12 +11,17 @@ remapper:remap('capslock', 'f13')
 remapper:register() -- NOTICE: Remapping is effective until system termination
 -- even after quit Hammerspoon. Use remapper:unregister()
 
--- Testing hyper key library
+-- -- Testing hyper key library
 -- package.path = package.path..';hyperex/?.lua'
 -- local hyperex = require('hyperex')
 -- hx = hyperex.new('f1'):withMessage("testEnter","testExit",0.5)
 -- hx:sticky('toggle')
 -- hx:bind('x'):to(function() hs.eventtap.keyStroke({}, 'x') end)
+
+-- Weather menubar app
+package.path = package.path..';hs-weather/?.lua'
+local weather = require("weather")
+weather.start()
 
 -- Library
 local omh = require('omh-lib')
