@@ -1,0 +1,6 @@
+{
+  "geolocation": true,
+  "location": "Berlin, DE",
+  "refresh": 300,
+  "units": "F"
+}
