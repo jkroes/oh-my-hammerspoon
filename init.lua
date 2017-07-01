@@ -1,5 +1,10 @@
 -- print(hs.inspect(hs.keycodes.map))
 
+-- Configure HS
+if not hs.autoLaunch then hs.autoLaunch = true end
+if not hs.menuIcon then hs.menuIcon = true end
+if hs.dockIcon then hs.dockIcon = nil end
+
 -- Show enabled hotkeys
 hs.hotkey.showHotkeys({"cmd","alt","ctrl"}, "s")
 
@@ -32,6 +37,7 @@ local fnutils = hs.fnutils
 local each = fnutils.each
 local partial = fnutils.partial
 local concat = fnutils.concat
+local indexOf = fnutils.indexOf
 
 local eventtap = hs.eventtap
 local keyStroke = eventtap.keyStroke
@@ -45,6 +51,7 @@ local launchOrFocus = app.launchOrFocus
 local screen = hs.screen
 local allScreens = screen.allScreens
 local mainScreen = screen.mainScreen
+local setPrimary = screen.setPrimary
 
 local osascript = hs.osascript
 local applescript = osascript.applescript
@@ -54,7 +61,6 @@ local iMessage = hs.messages.iMessage
 local grid = hs.grid
 
 -- Other local variables
-local all = allScreens()
 local shift = 0.075
 
 -- Spoons
@@ -88,8 +94,8 @@ local hyper = modes.hyper
 
 local lE = {}
 local lA = {}
-local lay = {}
-local wM = s.windowManipulation
+lay = {}
+wM = s.windowManipulation
 wM.screens.phrase=find(wM, wM.screens)
 wM.halves.phrase=find(wM, wM.halves)
 wM.thirds.phrase=find(wM, wM.thirds)
@@ -127,8 +133,23 @@ end --
 
 hyperKeys = {
   {
+    key="c",
+    fn=function()
+      hs.execute('open ' .. hs.configdir .. '/init.lua')
+      exitMode()
+    end
+  },
+  {
     key="space",
     fn=partial(keyStroke, {"cmd"}, "`")
+  }, -- switch windows
+  {
+    key="u",
+    fn=partial(keyStroke, {}, "pageup")
+  }, -- switch windows
+  {
+    key="d",
+    fn=partial(keyStroke, {}, "pagedown")
   }, -- switch windows
   {
     key="z",
@@ -136,10 +157,9 @@ hyperKeys = {
       local frontApp = frontmost()
       local zoom = {"Window", "Zoom"}
       frontApp:selectMenuItem(zoom)
-      frontApp:selectMenuItem(zoom)
       exitMode()
     end
-  }, -- zoom to retrieve off-screen windows
+  }, -- zoom to retrieve off-screen windows, allowing you to resize them
   {
     key='v',
     fn=function()
@@ -150,7 +170,7 @@ hyperKeys = {
   {
     key='m',
     fn=function()
-      wM.resizeCurrentWindow(find(wM,wM.maximize))
+      wM:resizeCurrentWindow(find(wM,wM.maximize))
       exitMode()
     end
   }, -- maximize focused window
@@ -237,6 +257,7 @@ concat(lE,
 {
   { key = "g", app = "/Users/justinkroes/Applications/Gmail.app" },
   { key = "h", app = "/Users/justinkroes/Applications/GitHub.app" },
+  { key = "o", app = "/Users/justinkroes/Applications/Gmail Offline.app" },
 })
 local lefn = function(dict, element, mode)
   launchOrFocus(element.app)
@@ -250,7 +271,7 @@ concat(lA,
   { key = "c", app = "Calendar" },
   { key = "d", app = "Dash" },
   { key = "e", app = "Microsoft Excel" },
-  { key = "g", app = "Google Chrome" },
+  --{ key = "g", app = "Google Chrome" },
   { key = "h", app = "Hammerspoon" },
   { key = "i", app = "iTerm" },
   { key = "m", app = "Activity Monitor" },
@@ -297,41 +318,62 @@ local lafn = function(dict, element, mode)
 end
 assign(lA, lafn)
 
+local all = allScreens()
+local screenwatcher = hs.screen.watcher.new(function()
+	hs.reload()
+end)
+screenwatcher:start()
+if all[1]:name() ~= "Color LCD" then setPrimary(all[2]) end
+if all[1]:name() ~= "Color LCD" then
+  error("Expected first element of hs.screen.allScreens() to be the "
+  .. "primary screen")
+end
+wM.shift = 0
+twoScreens = {
+  {"Dash", nil, all[2], wM:left()},
+  {"Gmail", nil, all[2], wM:right()},
+}
+wM.shift = 0.075
+concat(twoScreens, {
+  {"Atom", nil, all[1], wM:left()},
+  {"Hammerspoon", nil, all[1], wM:bottom_right()},
+  {"iTerm2", nil, all[1], wM:bottom_left()},
+  {"nvALT", nil, all[1], wM:top_right()}
+})
 concat(lay,
 {
   {
-    key = "2", -- dual-screen
-    layout = {
-      {"Atom", nil, all[1], hs.layout.left50},
-      {"Hammerspoon", nil, all[1], {1/2,1/2,1/2,1/2}},
-      {"iTerm2", nil, all[1], {1/2,0,1/2,1/2}},
-      {"nvALT", nil, all[1], {1/2,1/2,1/2,1/2}},
-      -- {"Dash", nil, all[2], {shift,1/2,1-shift,1/2}},
-      -- {"Google Chrome", nil, all[2], {shift,0,1-shift,1/2}},
-      {"Dash", nil, all[2], {shift,0,(1-shift)/2,1}},
-      {"Google Chrome", nil, all[2], {(1-shift)/2+shift,0,(1-shift)/2,1}},
-    }
-  },
-  { key = "1", -- single-screen
-    layout = {
-      {"Atom", nil, all[1], {shift,0,(1-shift)/2,1}},
-      {"Hammerspoon", nil, all[1], {shift+(1-shift)/2,1/2,(1-shift)/2,1/2}},
-      {"nvALT", nil, all[1], {shift+(1-shift)/2,1/2,(1-shift)/2,1/2}},
-      {"iTerm2", nil, all[1], {shift+(1-shift)/2,0,(1-shift)/2,1/2}},
-      {"Dash", nil, all[1], {shift+(1-shift)/2,0,1-(shift+(1-shift)/2),1}},
-      {"Google Chrome", nil, all[1], {shift,0,(1-shift)/2,1}},
-    }
+    key = "2",
+    layout = twoScreens
   }
 })
+wM.shift = 0.075
+oneScreen = {
+  {"Atom", nil, all[1], wM:left()},
+  {"Dash", nil, all[1], wM:right()},
+  {"Hammerspoon", nil, all[1], wM:bottom_right()},
+  {"nvALT", nil, all[1], wM:top_right()},
+  {"iTerm2", nil, all[1], wM:bottom_left()},
+  {"Gmail", nil, all[1], wM:max()},
+  {"Microsoft Word", nil, all[1], wM:max()},
+}
+concat(lay,
+{
+  {
+    key = "1",
+    layout = oneScreen
+  }
+})
+
 local layfn = function(dict, element, mode)
   hs.layout.apply(element.layout)
   exitMode(mode)
 end
 assign(lay, layfn)
 
--- Consider using code here: https://aaronlasseigne.com/2016/02/16/switching-from-slate-to-hammerspoon/
+-- -- Consider using code here: https://aaronlasseigne.com/2016/02/16/switching-from-slate-to-hammerspoon/
 local wmfn = function(dict, windowKey, windowMode)
-  wM.resizeCurrentWindow(find(dict, windowKey))
+  wM:resizeCurrentWindow(find(dict, windowKey))
   exitMode(windowMode)
 end
 assign(wM.screens, wmfn)
