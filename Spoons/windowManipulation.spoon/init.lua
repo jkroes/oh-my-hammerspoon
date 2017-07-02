@@ -75,12 +75,12 @@ local function get_vertical_third(win)
    return third
 end
 
-local function screen_left()
+local function screen_left(win)
   hs.window.setFrameCorrectness = true
   win:moveOneScreenWest()
   hs.window.setFrameCorrectness = false
 end
-local function screen_right()
+local function screen_right(win)
   hs.window.setFrameCorrectness = true
   win:moveOneScreenEast()
   hs.window.setFrameCorrectness = false
@@ -127,11 +127,12 @@ function obj:resizeCurrentWindow(how)
   end
   if which_third then how = which_third end
 
-  result = hs.fnutils.partial(self[how], self)
-  result = result()
-  -- store value of call for functions (e.g. self.maximize) that change state
-  -- with each call
+  if how == "screen_left" then screen_left(win)
+  elseif how == "screen_right" then screen_right(win)
+  else
+  result = hs.fnutils.partial(self[how], self); result = result()
   if (result) then win:move(result) end
+  end
 end
 
 return obj
