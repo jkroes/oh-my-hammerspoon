@@ -6,8 +6,10 @@ obj.notifications = true
 -- Notification types:
 ----Tab, tab: Enter hyper, exit hyper
 ----Tab,childkey,tab: Enter hyper, enter child, exit child
-----Tab, childkey, childkey: Enter hyper, enter child, exit hyper, enter hyper
+----Tab, childkey, childkey: Enter hyper, enter child, enter hyper
 ----Expected behavior for 3+-deep modal chains, such as cheaters
+----If a key is mapped to a childkey, the child mode will only be exited with
+----hyperkey
 function obj:bindModes(arg)
   local modes = self.modes
   local hyper = modes.hyper
@@ -16,13 +18,12 @@ function obj:bindModes(arg)
   local child -- forward declaration
   local key = arg.key
   local phrase = arg.phrase
-  local cheats = arg.cheats
+  local altEscapeKey = arg.altEscapeKey
 
   if parent then
-    child = hs.hotkey.modal.new()
-    self.modes[phrase] = child
+    child = hs.hotkey.modal.new(); self.modes[phrase] = child
     parent:bind({}, key, function() parent:exit(); child:enter() end)
-    if cheats then key = "Q" end
+    if altEscapeKey then key = altEscapeKey end
     child:bind({}, key, function() child:exit(); parent:enter() end)
   else
     hs.hotkey.bind({}, key, function()
@@ -46,10 +47,6 @@ function obj:bindModes(arg)
     child.active = true
   end
 
-  -- Prevent exit messages when switching to another mode. To enable exit
-  -- messages for completed actions (excluding modal entry or hyper exit)
-  -- set hyper.watch = nil, then exit the mode in the key function. This allows
-  -- also the next hyper key press to re-enter hyper mode.
   function child:exited()
     print('Exited ' .. phrase .. ' mode', '')
     if (not hyper.watch) and notifications then
@@ -59,17 +56,12 @@ function obj:bindModes(arg)
   end
 end
 
-function obj:exitSequentialMode(mode)
+function obj:exitSequentialMode(mode, withoutMsg)
   local hyper = self.modes.hyper
-  hyper.watch = nil
-  -- local mode = mode
-  if not mode then -- does this need a local variable, if the param is nil?
-    mode = hyper
-    hyper:exit()
-  else
-    if type(mode) == 'string' then mode = self.modes[mode] end
-    mode:exit()
-  end
+  if not withoutMsg then hyper.watch = nil end
+  if type(mode) == 'string' then mode = self.modes[mode] end
+  mode:exit()
+  if withoutMsg then hyper.watch = nil end
 end
 
 return obj

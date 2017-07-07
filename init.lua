@@ -136,7 +136,20 @@ hyperKeys = {
     key="c",
     fn=function()
       hs.execute('open ' .. hs.configdir .. '/init.lua')
-      exitMode()
+      exitMode("hyper")
+    end
+  },
+  {
+    key="g",
+    fn=function()
+      launchOrFocus("/Users/justinkroes/Applications/Gmail.app")
+      exitMode("hyper")
+    end
+  },
+  {
+    key="escape",
+    fn=function()
+      hs.execute('diskutil unmount /dev/disk2s2')
     end
   },
   {
@@ -157,27 +170,27 @@ hyperKeys = {
       local frontApp = frontmost()
       local zoom = {"Window", "Zoom"}
       frontApp:selectMenuItem(zoom)
-      exitMode()
+      exitMode("hyper")
     end
   }, -- zoom to retrieve off-screen windows, allowing you to resize them
   {
     key='v',
     fn=function()
       tCH:toggleClipboard()
-      exitMode()
+      exitMode("hyper")
     end
   }, -- contextual copy-paste
   {
     key='m',
     fn=function()
       wM:resizeCurrentWindow(find(wM,wM.maximize))
-      exitMode()
+      exitMode("hyper")
     end
   }, -- maximize focused window
   {
     key={{"cmd"},"m"},
     fn=function()
-      exitMode()
+      exitMode("hyper")
       local as = 'set theResponse to display dialog "Enter message" default '
       .. 'answer "" with icon note buttons {"Cancel", "Continue"} default '
       .. 'button "Continue" \
@@ -212,7 +225,7 @@ hyperKeys = {
   --     "",
   --     "C Google Chrome",
   --     "i iTerm2"})
-  --     exitMode()
+  --     exitMode("hyper")
   --   end
   -- },
   {
@@ -255,7 +268,6 @@ assign(hyperKeys)
 
 concat(lE,
 {
-  { key = "g", app = "/Users/justinkroes/Applications/Gmail.app" },
   { key = "h", app = "/Users/justinkroes/Applications/GitHub.app" },
   { key = "o", app = "/Users/justinkroes/Applications/Gmail Offline.app" },
 })
@@ -354,8 +366,8 @@ oneScreen = {
   {"Hammerspoon", nil, all[1], wM:bottom_right()},
   {"nvALT", nil, all[1], wM:top_right()},
   {"iTerm2", nil, all[1], wM:bottom_left()},
-  {"Gmail", nil, all[1], wM:max()},
-  {"Microsoft Word", nil, all[1], wM:max()},
+  {"Gmail", nil, all[1], wM:right()},
+  {"Microsoft Word", nil, all[1], wM:left()},
 }
 concat(lay,
 {
@@ -405,14 +417,14 @@ assign(wM.quarters, wmfn)
 --   local exitAfterOpen = self.exitAfterOpen; self.exitAfterOpen = nil
 --   local modalPhrase = self.modalPhrase; self.modalPhrase = nil
 --   local modalKey = self.modalKey; self.modalKey = nil
---   bindModes("hyper", modalKey, modalPhrase)
+--   bindModes{"hyper", modalKey, modalPhrase}
 --   local launchMode = sK.modes[modalPhrase]
 --
 --   temp = {}
 --   hs.fnutils.each(self, function(folderKey)
 --     if type(folderKey) ~= "function" then -- exclude methods
 --       local folderName = find(self,folderKey)
---       bindModes(modalPhrase, folderKey, folderName, false, true)
+--       bindModes{phrase=modalPhrase,key=folderKey,parent=folderName,altEscapeKey="Q"}
 --
 --       path = path .. folderName .. "/"
 --       files = omh.listcheatfiles(path) -- Directories are assumed to have .pdf,.png, and/or .md, and the latter are ignored. Files are assumed to be named with letters, numbers, and/or underscores.
