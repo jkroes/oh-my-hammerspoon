@@ -10,7 +10,8 @@ local function createCanvas(modeName)
   local canvasFrame = canvas:frame(); canvasFrame.__luaSkinType = nil
   canvas:alpha(0.8)
 
-  local phrase = "Entered "..modeName.." mode"
+  --local phrase = "Entered "..modeName.." mode"
+  local phrase = modeName
   canvas:appendElements({
     type = "text",
     text = phrase, -- needs to be changeable by mode
@@ -96,13 +97,13 @@ function obj:bindModes(arg)
   local notifications = self.notifications
   local saveYourSelf = self -- disambiguate self for inner methods
   function child:entered()
-    print('Entered ' .. phrase .. ' mode', '')
+    print('Entered ' .. phrase .. ' mode')
     saveYourSelf:toggleCanvas(phrase)
     child.active = true
   end
 
   function child:exited()
-    print('Exited ' .. phrase .. ' mode', '')
+    print('Exited ' .. phrase .. ' mode')
     saveYourSelf:toggleCanvas(phrase)
     child.active = nil
   end
