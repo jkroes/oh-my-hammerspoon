@@ -444,4 +444,100 @@ assign(wM.quarters, wmfn)
 -- end
 --
 -- ch:start()
---
+
+-- Testing hs.drawing and hs.canvas for custom notifications
+function createCanvas()
+  g = mainScreen():frame()
+  width = g._w
+  height = g._h
+  f = hs.window.focusedWindow():frame()
+  -- print(f) -- though f is global, and though it prints fine, calling it from
+  --the console always results in nil
+  x1 = f._x; x2 = f._x+f._w; if x2 > width then x2 = width end
+  y1 = f._y; y2 = f._y+f._h; if y2 > height then y2 = height end
+
+  squares = {}
+  table.insert(squares,{x=0,y=0,w=x1,h=y1})
+  table.insert(squares,{x=x1,y=0,w=x2-x1,h=y1})
+  table.insert(squares,{x=x2,y=0,w=width-x2,h=y1})
+  table.insert(squares,{x=x2,y=y1,w=width-x2,h=y2-y1})
+  table.insert(squares,{x=x2,y=y2,w=width-x2,h=height-y2})
+  table.insert(squares,{x=x1,y=y2,w=x2-x1,h=height-y2})
+  table.insert(squares,{x=0,y=y2,w=x1,h=height-y2})
+  table.insert(squares,{x=0,y=y1,w=x1,h=y2-y1})
+
+  areas = {}
+  for i = 1,#squares do
+    temp = squares[i]
+    temp.area = temp.w*temp.h
+    table.insert(areas, temp.area)
+  end
+
+  maxArea = math.max(table.unpack(areas))
+  maxSquare = hs.fnutils.find(squares, function(element)
+    return element.area == maxArea
+  end)
+  maxSquare.area = nil
+
+  canv = hs.canvas.new(maxSquare)
+  canvFrame = canv:frame(); canvFrame.__luaSkinType = nil
+  canv:alpha(0.8)
+
+  canv:appendElements({
+    type = "text",
+    text = "Entered test mode", -- needs to be changeable by mode
+    --hs.inspect(hs.canvas.defaultTextStyle())
+    -- textAlignment = "center",
+    textColor = hs.drawing.color.lists().Apple.White,
+    textSize = 50,
+  })
+
+  minDims = canv:minimumTextSize(1, "Entered test mode") -- sub a var for
+  -- this string and value of 'text' above
+  minDims._luaSkinType = nil
+  hRef = minDims.h / canvFrame.h * 100
+  wRef = minDims.w / canvFrame.w * 100
+
+  canv[1].frame.x = tostring(50 - wRef/2).."%"
+  canv[1].frame.y = tostring(50 - hRef/2).."%"
+  canv[1].frame.w = tostring(50 + wRef/2).."%"
+  canv[1].frame.h = tostring(50 + hRef/2).."%"
+
+  minDims.h = tostring(hRef).."%"
+  minDims.w = tostring(wRef).."%"
+  minDims.x = canv[1].frame.x
+  minDims.y = canv[1].frame.y
+
+  canv:insertElement({
+    type = "rectangle",
+    -- absolutePosition = false,
+    -- absoluteSize = true,
+    frame = minDims,
+    -- strokeColor = hs.drawing.color.lists().Apple.White,
+    -- strokeWidth = 1,
+    fillColor = hs.drawing.color.lists().Apple.Black,
+    roundedRectRadii = {xRadius = 6, yRadius = 6}
+  }, 1)
+
+  return canv
+end
+-- > hs.inspect(canv:frame())
+-- {
+--   __luaSkinType = "NSRect",
+--   h = 1027.0,
+--   w = 747.0,
+--   x = 1173.0,
+--   y = 126.0
+-- }
+
+function toggleCanvas()
+  if not canv then canv = createCanvas() end
+  if not active then canv:show(); active = true
+  else canv:hide(); active = nil -- needs to happen once mode is no longer active
+    -- try through enter and exit functions of each mode
+  end
+
+-- hs.canvas.help([attribute])
+
+end
+hs.hotkey.bind({"cmd"},"o",toggleCanvas)
