@@ -6,69 +6,35 @@ obj.notifications = true
 local function createCanvas(modeName)
   local g = hs.screen.mainScreen():frame() -- Easiest fix to broken screen
   -- is to adjust the boundaries of 'g' BAE
-  local width = g._w
-  local height = g._h
-  local f = hs.window.focusedWindow():frame()
-  local x1 = f._x; x2 = f._x+f._w; if x2 > width then x2 = width end
-  local y1 = f._y; y2 = f._y+f._h; if y2 > height then y2 = height end
-
-  local squares = {}
-  table.insert(squares,{x=0,y=0,w=x1,h=y1})
-  table.insert(squares,{x=x1,y=0,w=x2-x1,h=y1})
-  table.insert(squares,{x=x2,y=0,w=width-x2,h=y1})
-  table.insert(squares,{x=x2,y=y1,w=width-x2,h=y2-y1})
-  table.insert(squares,{x=x2,y=y2,w=width-x2,h=height-y2})
-  table.insert(squares,{x=x1,y=y2,w=x2-x1,h=height-y2})
-  table.insert(squares,{x=0,y=y2,w=x1,h=height-y2})
-  table.insert(squares,{x=0,y=y1,w=x1,h=y2-y1})
-
-  local areas = {}
-  for i = 1,#squares do
-    local temp = squares[i]
-    temp.area = temp.w*temp.h
-    table.insert(areas, temp.area)
-  end
-
-  local maxArea = math.max(table.unpack(areas))
-  local maxSquare = hs.fnutils.find(squares, function(element)
-    return element.area == maxArea
-  end)
-  if maxSquare.area < (0.25 * g._w * g._h) then
-    maxSquare = {x=g._x,y=g._y,w=g._w,h=g._h}
-  end -- if windows are too big, just use the whole screen
-  maxSquare.area = nil
-
-  local canv = hs.canvas.new(maxSquare)
-  local canvFrame = canv:frame(); canvFrame.__luaSkinType = nil
-  canv:alpha(0.8)
+  local canvas = hs.canvas.new{x=g._x,y=g._y,w=g._w,h=g._h}
+  local canvasFrame = canvas:frame(); canvasFrame.__luaSkinType = nil
+  canvas:alpha(0.8)
 
   local phrase = "Entered "..modeName.." mode"
-  canv:appendElements({
+  canvas:appendElements({
     type = "text",
     text = phrase, -- needs to be changeable by mode
-    --hs.inspect(hs.canvas.defaultTextStyle())
-    -- textAlignment = "center",
     textColor = hs.drawing.color.lists().Apple.White,
     textSize = 50,
   })
 
-  local minDims = canv:minimumTextSize(1, phrase) -- sub a var for
+  local minDims = canvas:minimumTextSize(1, phrase) -- sub a var for
   -- this string and value of 'text' above
   minDims._luaSkinType = nil
-  local hRef = minDims.h / canvFrame.h * 100
-  local wRef = minDims.w / canvFrame.w * 100
+  local hRef = minDims.h / canvasFrame.h * 100
+  local wRef = minDims.w / canvasFrame.w * 100
 
-  canv[1].frame.x = tostring(50 - wRef/2).."%"
-  canv[1].frame.y = tostring(50 - hRef/2).."%"
-  canv[1].frame.w = tostring(50 + wRef/2).."%"
-  canv[1].frame.h = tostring(50 + hRef/2).."%"
+  canvas[1].frame.x = tostring(50 - wRef/2).."%"
+  canvas[1].frame.y = tostring(50 - hRef/2).."%"
+  canvas[1].frame.w = tostring(50 + wRef/2).."%"
+  canvas[1].frame.h = tostring(50 + hRef/2).."%"
 
   minDims.h = tostring(hRef).."%"
   minDims.w = tostring(wRef).."%"
-  minDims.x = canv[1].frame.x
-  minDims.y = canv[1].frame.y
+  minDims.x = canvas[1].frame.x
+  minDims.y = canvas[1].frame.y
 
-  canv:insertElement({
+  canvas:insertElement({
     type = "rectangle",
     -- absolutePosition = false,
     -- absoluteSize = true,
@@ -79,14 +45,14 @@ local function createCanvas(modeName)
     roundedRectRadii = {xRadius = 6, yRadius = 6}
   }, 1)
 
-  return canv
+  return canvas
 end
 
-local canv = {}
+local canvas = {}
 function obj:toggleCanvas(modeName)
   if not self.modes[modeName].active then
-    canv[modeName] = createCanvas(modeName):show()
-  else canv[modeName]:delete(); canv[modeName] = nil -- delete the lingering userdata
+    canvas[modeName] = createCanvas(modeName):show()
+  else canvas[modeName]:delete(); canvas[modeName] = nil -- delete the lingering userdata
   end
 end -- hs.canvas.help([attribute])
 hs.hotkey.bind({"cmd"},"o",function() toggleCanvas("test") end)
