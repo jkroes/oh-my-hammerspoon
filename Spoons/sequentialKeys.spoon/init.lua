@@ -7,9 +7,12 @@ local function createCanvas(modeName)
   local g = hs.screen.mainScreen():frame()
   local width = g._w
   local height = g._h
-  local f = hs.window.focusedWindow():frame()
-  -- print(f) -- though f is global, and though it prints fine, calling it from
-  --the console always results in nil
+  f = hs.window.focusedWindow():frame()
+  if f == hs.window.desktop():frame() then
+    f = hs.window.visibleWindows()[#hs.window.visibleWindows()]:frame() -- a
+    -- hack to prevent errors related to the desktop window, whose frame was
+    -- apparently big enough to cause issues
+  end
   local x1 = f._x; x2 = f._x+f._w; if x2 > width then x2 = width end
   local y1 = f._y; y2 = f._y+f._h; if y2 > height then y2 = height end
 
@@ -80,7 +83,7 @@ local function createCanvas(modeName)
   return canv
 end
 
-canv = {}
+local canv = {}
 function obj:toggleCanvas(modeName)
   if not self.modes[modeName].active then
     canv[modeName] = createCanvas(modeName):show()
