@@ -4,15 +4,11 @@ obj.modes.hyper = hs.hotkey.modal.new()
 obj.notifications = true
 
 local function createCanvas(modeName)
-  local g = hs.screen.mainScreen():frame()
+  local g = hs.screen.mainScreen():frame() -- Easiest fix to broken screen
+  -- is to adjust the boundaries of 'g' BAE
   local width = g._w
   local height = g._h
-  f = hs.window.focusedWindow():frame()
-  if f == hs.window.desktop():frame() then
-    f = hs.window.visibleWindows()[#hs.window.visibleWindows()]:frame() -- a
-    -- hack to prevent errors related to the desktop window, whose frame was
-    -- apparently big enough to cause issues
-  end
+  local f = hs.window.focusedWindow():frame()
   local x1 = f._x; x2 = f._x+f._w; if x2 > width then x2 = width end
   local y1 = f._y; y2 = f._y+f._h; if y2 > height then y2 = height end
 
@@ -37,6 +33,9 @@ local function createCanvas(modeName)
   local maxSquare = hs.fnutils.find(squares, function(element)
     return element.area == maxArea
   end)
+  if maxSquare.area < (0.25 * g._w * g._h) then
+    maxSquare = {x=g._x,y=g._y,w=g._w,h=g._h}
+  end -- if windows are too big, just use the whole screen
   maxSquare.area = nil
 
   local canv = hs.canvas.new(maxSquare)
