@@ -98,7 +98,6 @@ lay = {}
 wM = s.windowManipulation
 wM.screens.phrase=find(wM, wM.screens)
 wM.halves.phrase=find(wM, wM.halves)
-wM.thirds.phrase=find(wM, wM.thirds)
 wM.quarters.phrase=find(wM, wM.quarters)
 lE.phrase = "epichrome launch"
 lA.phrase = "app launch"
@@ -108,7 +107,6 @@ bindModes{key="f13", phrase="hyper"} -- named args require brackets
  -- bound to caps lock via Karabiner Elements
 bindModes{parent="hyper", key="s", phrase=wM.screens.phrase}
 bindModes{parent="hyper", key="h", phrase=wM.halves.phrase}
-bindModes{parent="hyper", key="t", phrase=wM.thirds.phrase}
 bindModes{parent="hyper", key="q", phrase=wM.quarters.phrase}
 bindModes{parent="hyper", key="e", phrase=lE.phrase}
 bindModes{parent="hyper", key="a", phrase=lA.phrase}
@@ -340,17 +338,20 @@ if all[1]:name() ~= "Color LCD" then
   error("Expected first element of hs.screen.allScreens() to be the "
   .. "primary screen")
 end
-wM.shift = 0
+wM.shift.x = 0; wM.shift.y = 0
 twoScreens = {
-  {"Dash", nil, all[2], wM:left()},
-  {"Gmail", nil, all[2], wM:right()},
+  {"Dash", nil, all[2], wM:max()},
+  {"Microsoft Excel", nil, all[2], wM:max()},
+  {"Gmail", nil, all[2], wM:max()},
+  {"Zotero", nil, all[2], wM:max()},
 }
-wM.shift = 0.075
+wM.shift.x = 0.075; wM.shift.y = 0.05
 concat(twoScreens, {
+  {"Microsoft Word", nil, all[1], wM:left()},
   {"Atom", nil, all[1], wM:left()},
   {"Hammerspoon", nil, all[1], wM:bottom_right()},
-  {"iTerm2", nil, all[1], wM:bottom_left()},
-  {"nvALT", nil, all[1], wM:top_right()}
+  {"iTerm2", nil, all[1], wM:top_right()},
+  {"nvALT", nil, all[1], wM:bottom_right()}
 })
 concat(lay,
 {
@@ -359,15 +360,17 @@ concat(lay,
     layout = twoScreens
   }
 })
-wM.shift = 0.075
+wM.shift.x = 0.075; wM.shift.y = 0.05
 oneScreen = {
   {"Atom", nil, all[1], wM:left()},
   {"Dash", nil, all[1], wM:right()},
   {"Hammerspoon", nil, all[1], wM:bottom_right()},
-  {"nvALT", nil, all[1], wM:top_right()},
-  {"iTerm2", nil, all[1], wM:bottom_left()},
+  {"nvALT", nil, all[1], wM:bottom_right()},
+  {"iTerm2", nil, all[1], wM:top_right()},
   {"Gmail", nil, all[1], wM:right()},
   {"Microsoft Word", nil, all[1], wM:left()},
+  {"Microsoft Excel", nil, all[1], wM:max()},
+  {"Zotero", nil, all[1], wM:max()},
 }
 concat(lay,
 {
@@ -390,7 +393,6 @@ local wmfn = function(dict, windowKey, windowMode)
 end
 assign(wM.screens, wmfn)
 assign(wM.halves, wmfn)
-assign(wM.thirds, wmfn)
 assign(wM.quarters, wmfn)
 
 
