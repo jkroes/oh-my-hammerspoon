@@ -1,3 +1,12 @@
+-- https://github.com/Hammerspoon/hammerspoon/issues/1268
+-- Open init.lua in ZeroBrane Studio
+-- Project | Start Debugger Server
+-- Reload HS config
+local ZBS = "/Applications//ZeroBraneStudio.app/Contents/ZeroBraneStudio"
+package.path = package.path .. ";" .. ZBS .. "/lualibs/?/?.lua;" .. ZBS .. "/lualibs/?.lua"
+package.cpath = package.cpath .. ";" .. ZBS .. "/bin/?.dylib;" .. ZBS .. "/bin/clibs53/?.dylib"
+require("mobdebug").start()
+
 -- print(hs.inspect(hs.keycodes.map))
 
 -- Configure HS
@@ -140,14 +149,16 @@ hyperKeys = {
   {
     key="g",
     fn=function()
-      launchOrFocus("/Users/justinkroes/Applications/Gmail.app")
+      launchOrFocus("Google Chrome")
       exitMode("hyper")
     end
   },
   {
     key="escape",
     fn=function()
-      hs.execute('diskutil unmount /dev/disk2s2')
+      hs.execute('diskutil unmountDisk /dev/disk2')
+      -- find a way to locate the name of the disk with Seagate Backup, since
+      -- it changes
     end
   },
   {

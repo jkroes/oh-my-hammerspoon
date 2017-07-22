@@ -1,7 +1,6 @@
 obj = {}
 obj.modes = {}
 obj.modes.hyper = hs.hotkey.modal.new()
-obj.notifications = true
 
 local function createCanvas(modeName)
   local g = hs.screen.mainScreen():frame() -- Easiest fix to broken screen
@@ -56,8 +55,42 @@ function obj:toggleCanvas(modeName)
   else canvas[modeName]:delete(); canvas[modeName] = nil -- delete the lingering userdata
   end
 end -- hs.canvas.help([attribute])
-hs.hotkey.bind({"cmd"},"o",function() toggleCanvas("test") end)
 
+local printChars =  {}
+for i=1,52 do
+  printChars[i] = tostring(i)
+end
+table.insert(printChars, tostring(94)) -- hack for most of the printing chars
+-- listed in hs.keycodes.map. may cause issues, keep an eye out. Note that
+-- this also covers the shifted chars associated with these keycodes
+-- e.g. 2 as well as @
+function obj:restrictKeys()
+  local modes = self.modes
+
+  self.rest = {}
+  self.rest = hs.eventtap.new({hs.eventtap.event.types.keyUp},
+  function(event)
+    self.rest:stop()
+    local keyCode = tostring(event:getKeyCode())
+    local hotkeyList = hs.hotkey.getHotkeys()
+    local hotkeyCodes = hs.fnutils.imap(hotkeyList, function(elem)
+      local hk = tostring(elem._hk)
+      return string.match(hk,"keycode: (%d+)")
+    end)
+
+    if not hs.fnutils.contains(hotkeyCodes, keyCode) then
+      if hs.fnutils.contains(printChars, keyCode) then
+        hs.eventtap.keyStroke({"cmd"},"z") --only works for key up in terms of timing
+
+      end
+    end
+
+    self.rest:start()
+  end)
+
+  self.rest:start()
+
+end
 
 -- Notification types:
 ----Tab, tab: Enter hyper, exit hyper
@@ -78,6 +111,7 @@ function obj:bindModes(arg)
 
   if parent then
     child = hs.hotkey.modal.new(); self.modes[phrase] = child
+    child.parent = parent
     parent:bind({}, key, function() parent:exit(); child:enter() end)
     if altEscapeKey then key = altEscapeKey end
     child:bind({}, key, function() child:exit(); parent:enter() end)
@@ -94,17 +128,19 @@ function obj:bindModes(arg)
   end
 
   -- Overwrite modal objects' enter-exit methods
-  local notifications = self.notifications
   local saveYourSelf = self -- disambiguate self for inner methods
   function child:entered()
     print('Entered ' .. phrase .. ' mode')
     saveYourSelf:toggleCanvas(phrase)
     child.active = true
+    saveYourSelf:restrictKeys()
   end
 
   function child:exited()
     print('Exited ' .. phrase .. ' mode')
     saveYourSelf:toggleCanvas(phrase)
+    saveYourSelf.rest:stop(); saveYourSelf.rest = nil -- Setting to nil first
+    -- apparently doesn't stop the event tap, causing all kinds of bugs
     child.active = nil
   end
 end
