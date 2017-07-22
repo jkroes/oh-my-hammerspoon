@@ -65,12 +65,11 @@ table.insert(printChars, tostring(94)) -- hack for most of the printing chars
 -- this also covers the shifted chars associated with these keycodes
 -- e.g. 2 as well as @
 function obj:restrictKeys()
-  local modes = self.modes
 
   self.rest = {}
-  self.rest = hs.eventtap.new({hs.eventtap.event.types.keyUp},
+  self.rest = hs.eventtap.new({hs.eventtap.event.types.keyDown},
   function(event)
-    self.rest:stop()
+
     local keyCode = tostring(event:getKeyCode())
     local hotkeyList = hs.hotkey.getHotkeys()
     local hotkeyCodes = hs.fnutils.imap(hotkeyList, function(elem)
@@ -79,13 +78,9 @@ function obj:restrictKeys()
     end)
 
     if not hs.fnutils.contains(hotkeyCodes, keyCode) then
-      if hs.fnutils.contains(printChars, keyCode) then
-        hs.eventtap.keyStroke({"cmd"},"z") --only works for key up in terms of timing
-
-      end
+      return true
     end
 
-    self.rest:start()
   end)
 
   self.rest:start()
