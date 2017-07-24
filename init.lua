@@ -347,9 +347,9 @@ local all = allScreens()
 if hs.screen.primaryScreen() ~= all[1] then
   error("I thought the primary screen was always the first element of hs.screen.allScreens(). Wtf")
 end
-primaryScreen = all[1]
-secondScreen = all[2]
-if secondScreen:name() == "Color LCD" then
+local primaryScreen = all[1]
+local secondScreen = all[2]
+if secondScreen and secondScreen:name() == "Color LCD" then
   wM.shift.x = 0.075; wM.shift.y = 0.05
 else wM.shift.x = 0; wM.shift.y = 0
 end
