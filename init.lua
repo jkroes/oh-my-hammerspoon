@@ -339,30 +339,36 @@ local lafn = function(dict, element, mode)
 end
 assign(lA, lafn)
 
-local all = allScreens()
 local screenwatcher = hs.screen.watcher.new(function()
 	hs.reload()
 end)
 screenwatcher:start()
-if all[1]:name() ~= "Color LCD" then setPrimary(all[2]) end
-if all[1]:name() ~= "Color LCD" then
-  error("Expected first element of hs.screen.allScreens() to be the "
-  .. "primary screen")
+local all = allScreens()
+if hs.screen.primaryScreen() ~= all[1] then
+  error("I thought the primary screen was always the first element of hs.screen.allScreens(). Wtf")
 end
-wM.shift.x = 0; wM.shift.y = 0
+primaryScreen = all[1]
+secondScreen = all[2]
+if secondScreen:name() == "Color LCD" then
+  wM.shift.x = 0.075; wM.shift.y = 0.05
+else wM.shift.x = 0; wM.shift.y = 0
+end
 twoScreens = {
-  {"Dash", nil, all[2], wM:max()},
-  {"Microsoft Excel", nil, all[2], wM:max()},
-  {"Gmail", nil, all[2], wM:max()},
-  {"Zotero", nil, all[2], wM:max()},
+  {"Dash", nil, secondScreen, wM:max()},
+  {"Microsoft Excel", nil, secondScreen, wM:max()},
+  {"Google Chrome", nil, secondScreen, wM:max()},
+  {"Zotero", nil, secondScreen, wM:max()},
 }
-wM.shift.x = 0.075; wM.shift.y = 0.05
+if primaryScreen:name() == "Color LCD" then
+  wM.shift.x = 0.075; wM.shift.y = 0.05
+else wM.shift.x = 0; wM.shift.y = 0
+end
 concat(twoScreens, {
-  {"Microsoft Word", nil, all[1], wM:left()},
-  {"Atom", nil, all[1], wM:left()},
-  {"Hammerspoon", nil, all[1], wM:bottom_right()},
-  {"iTerm2", nil, all[1], wM:top_right()},
-  {"nvALT", nil, all[1], wM:bottom_right()}
+  {"Microsoft Word", nil, primaryScreen, wM:left()},
+  {"Atom", nil, primaryScreen, wM:left()},
+  {"Hammerspoon", nil, primaryScreen, wM:bottom_right()},
+  {"iTerm2", nil, primaryScreen, wM:top_right()},
+  {"nvALT", nil, primaryScreen, wM:bottom_right()}
 })
 concat(lay,
 {
@@ -371,17 +377,16 @@ concat(lay,
     layout = twoScreens
   }
 })
-wM.shift.x = 0.075; wM.shift.y = 0.05
 oneScreen = {
-  {"Atom", nil, all[1], wM:left()},
-  {"Dash", nil, all[1], wM:right()},
-  {"Hammerspoon", nil, all[1], wM:bottom_right()},
-  {"nvALT", nil, all[1], wM:bottom_right()},
-  {"iTerm2", nil, all[1], wM:top_right()},
-  {"Gmail", nil, all[1], wM:right()},
-  {"Microsoft Word", nil, all[1], wM:left()},
-  {"Microsoft Excel", nil, all[1], wM:max()},
-  {"Zotero", nil, all[1], wM:max()},
+  {"Atom", nil, primaryScreen, wM:left()},
+  {"Dash", nil, primaryScreen, wM:right()},
+  {"Hammerspoon", nil, primaryScreen, wM:bottom_right()},
+  {"nvALT", nil, primaryScreen, wM:bottom_right()},
+  {"iTerm2", nil, primaryScreen, wM:top_right()},
+  {"Google Chrome", nil, primaryScreen, wM:right()},
+  {"Microsoft Word", nil, primaryScreen, wM:left()},
+  {"Microsoft Excel", nil, primaryScreen, wM:max()},
+  {"Zotero", nil, primaryScreen, wM:max()},
 }
 concat(lay,
 {
@@ -390,7 +395,6 @@ concat(lay,
     layout = oneScreen
   }
 })
-
 local layfn = function(dict, element, mode)
   hs.layout.apply(element.layout)
   exitMode(mode)
