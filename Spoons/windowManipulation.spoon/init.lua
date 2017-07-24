@@ -31,7 +31,7 @@ function obj:bottom_left() return {self.shift.x,(1+self.shift.y)/2,(1-self.shift
 function obj:bottom_right() return {(1+self.shift.x)/2,(1+self.shift.y)/2,(1-self.shift.x)/2,(1-self.shift.y)/2} end
 function obj:top_left() return {self.shift.x,self.shift.y,(1-self.shift.x)/2,(1-self.shift.y)/2} end
 function obj:top_right() return {(1+self.shift.x)/2,self.shift.y,(1-self.shift.x)/2,(1-self.shift.y)/2} end
-function obj:max() return {self.shift.x,self.shift.y,1,1} end
+function obj:max() return {self.shift.x,self.shift.y,1-self.shift.x,1-self.shift.y} end
 
 -- Prevent laggy animations (doesn't need to be optionally configured)
 hs.window.animationDuration = 0

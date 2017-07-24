@@ -354,10 +354,9 @@ if secondScreen and secondScreen:name() == "Color LCD" then
 else wM.shift.x = 0; wM.shift.y = 0
 end
 twoScreens = {
+  {"Google Chrome", nil, secondScreen, wM:max()},
   {"Dash", nil, secondScreen, wM:max()},
   {"Microsoft Excel", nil, secondScreen, wM:max()},
-  {"Google Chrome", nil, secondScreen, wM:max()},
-  {"Zotero", nil, secondScreen, wM:max()},
 }
 if primaryScreen:name() == "Color LCD" then
   wM.shift.x = 0.075; wM.shift.y = 0.05
@@ -366,6 +365,7 @@ end
 concat(twoScreens, {
   {"Microsoft Word", nil, primaryScreen, wM:left()},
   {"Atom", nil, primaryScreen, wM:left()},
+  {"Zotero", nil, secondScreen, wM:right()},
   {"Hammerspoon", nil, primaryScreen, wM:bottom_right()},
   {"iTerm2", nil, primaryScreen, wM:top_right()},
   {"nvALT", nil, primaryScreen, wM:bottom_right()}
