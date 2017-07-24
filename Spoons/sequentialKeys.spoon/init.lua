@@ -66,24 +66,31 @@ table.insert(printChars, tostring(94)) -- hack for most of the printing chars
 -- e.g. 2 as well as @
 function obj:restrictKeys()
 
-  self.rest = {}
   self.rest = hs.eventtap.new({hs.eventtap.event.types.keyDown},
   function(event)
 
     local keyCode = tostring(event:getKeyCode())
+    -- print("keycode: ", keyCode)
     local hotkeyList = hs.hotkey.getHotkeys()
+    -- print("hoykeyList: ", hs.inspect(hotkeyList))
     local hotkeyCodes = hs.fnutils.imap(hotkeyList, function(elem)
       local hk = tostring(elem._hk)
-      return string.match(hk,"keycode: (%d+)")
+      -- print("hk: ", hk)
+      local sm = string.match(hk,"keycode: (%d+)")
+      -- print("sm: ", sm)
+      return sm
     end)
 
-    if not hs.fnutils.contains(hotkeyCodes, keyCode) then
+    local isHotkey = hs.fnutils.contains(hotkeyCodes, keyCode)
+    -- print("isHotkey: ", isHotkey)
+    if not isHotkey then
       return true
     end
 
   end)
 
   self.rest:start()
+
 
 end
 
@@ -134,8 +141,7 @@ function obj:bindModes(arg)
   function child:exited()
     print('Exited ' .. phrase .. ' mode')
     saveYourSelf:toggleCanvas(phrase)
-    saveYourSelf.rest:stop(); saveYourSelf.rest = nil -- Setting to nil first
-    -- apparently doesn't stop the event tap, causing all kinds of bugs
+    saveYourSelf.rest:stop(); saveYourSelf.rest = nil
     child.active = nil
   end
 end

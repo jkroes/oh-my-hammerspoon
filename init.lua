@@ -163,15 +163,27 @@ hyperKeys = {
   },
   {
     key="space",
-    fn=partial(keyStroke, {"cmd"}, "`")
+    fn=function()
+      sK.rest:stop()
+      keyStroke({"cmd"}, "`")
+      sK.rest:start()
+    end
   }, -- switch windows
   {
     key="u",
-    fn=partial(keyStroke, {}, "pageup")
+    fn=function()
+      sK.rest:stop()
+      keyStroke({}, "pageup")
+      sK.rest:start()
+    end
   }, -- switch windows
   {
     key="d",
-    fn=partial(keyStroke, {}, "pagedown")
+    fn=function()
+      sK.rest:stop()
+      keyStroke({}, "pagedown")
+      sK.rest:start()
+    end
   }, -- switch windows
   {
     key="z",
