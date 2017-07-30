@@ -225,6 +225,7 @@ hyperKeys = {
             if appName == "Messages" then
               iMessage("9167996697", message)
               get("Messages"):kill()
+              hs.reload()
             end
           end
         end
