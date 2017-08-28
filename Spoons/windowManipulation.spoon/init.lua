@@ -3,6 +3,8 @@
 
 local obj = {}
 obj.shift = {}
+obj.shift.x = 0
+obj.shift.y = 0
 
 obj.maximize = "m"
 obj.screens = {
@@ -57,8 +59,16 @@ end
 function obj:resizeCurrentWindow(how)
   local win = hs.window.focusedWindow(); if not win then return end
   local screen = win:screen()
+  local name = screen:name()
+  local temp = {}
+  temp.x = self.shift.x; temp.y = self.shift.y
 
-  -- Function is internal because it value of win needs to update each time
+  if name ~= "Color LCD" then
+      self.shift.x = 0; self.shift.y = 0
+  end
+
+
+  -- Function is internal because value of win needs to update each time
   -- resize is called
   function self:maximize()
     local subhow
@@ -73,15 +83,14 @@ function obj:resizeCurrentWindow(how)
     return subhow
   end
 
-  -- Reset coordinates, optionally adjust for cracked laptop screen
-  self.shift.x = 0; if screen:name() == "Color LCD" then self.shift.x = 0.075 end
-  self.shift.y = 0; if screen:name() == "Color LCD" then self.shift.y = 0.05 end
-
   if how == "screen_left" then screen_left(win)
   elseif how == "screen_right" then screen_right(win)
   else result = hs.fnutils.partial(self[how], self); result = result()
     if (result) then win:move(result) end
   end
+
+  -- Restore margin size to previous values
+  self.shift.x = temp.x; self.shift.y = temp.y
 end
 
 return obj

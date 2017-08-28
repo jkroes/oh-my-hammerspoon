@@ -104,7 +104,7 @@ local hyper = modes.hyper
 local lE = {}
 local lA = {}
 lay = {}
-wM = s.windowManipulation
+local wM = s.windowManipulation
 wM.screens.phrase=find(wM, wM.screens)
 wM.halves.phrase=find(wM, wM.halves)
 wM.quarters.phrase=find(wM, wM.quarters)
@@ -352,18 +352,27 @@ local lafn = function(dict, element, mode)
 end
 assign(lA, lafn)
 
+-- Reload script if screen changes
 local screenwatcher = hs.screen.watcher.new(function()
 	hs.reload()
 end)
 screenwatcher:start()
+
+-- Just in case I didn't understand the API as well as I thought
 local all = allScreens()
 if hs.screen.primaryScreen() ~= all[1] then
   error("I thought the primary screen was always the first element of hs.screen.allScreens(). Wtf")
 end
+
+-- Adjust margins for cracked laptop, and assign layouts to each screen
+-- Note: wM will check whether the window being resized is on a cracked screen
+-- or not and temporarily set the shift margins to 0 if not. This doesn't work
+-- for layouts, because you're resizing multiple screens without setting each
+-- screen as the focused screen first
 local primaryScreen = all[1]
 local secondScreen = all[2]
 if secondScreen and secondScreen:name() == "Color LCD" then
-  wM.shift.x = 0.075; wM.shift.y = 0.05
+  wM.shift.x = 0.075; wM.shift.y = 0.1
 else wM.shift.x = 0; wM.shift.y = 0
 end
 twoScreens = {
@@ -372,7 +381,7 @@ twoScreens = {
   {"Microsoft Excel", nil, secondScreen, wM:max()},
 }
 if primaryScreen:name() == "Color LCD" then
-  wM.shift.x = 0.075; wM.shift.y = 0.05
+  wM.shift.x = 0.075; wM.shift.y = 0.1
 else wM.shift.x = 0; wM.shift.y = 0
 end
 concat(twoScreens, {
@@ -415,6 +424,7 @@ end
 assign(lay, layfn)
 
 -- -- Consider using code here: https://aaronlasseigne.com/2016/02/16/switching-from-slate-to-hammerspoon/
+wM.shift.x = 0.075; wM.shift.y = 0.1
 local wmfn = function(dict, windowKey, windowMode)
   wM:resizeCurrentWindow(find(dict, windowKey))
   exitMode(windowMode)
