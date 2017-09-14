@@ -9,6 +9,11 @@ require("mobdebug").start()
 
 -- print(hs.inspect(hs.keycodes.map))
 
+-- Based on communications with Andrew Williams on how to fix a broken screen
+-- Note that this requires me to change the shift of the windowsManipulation
+-- module. I will comment out the previous lines that are not redundant.
+hs.screen.primaryScreen():setMode(1920, 1080, 1)
+
 -- Configure HS
 if not hs.autoLaunch then hs.autoLaunch = true end
 if not hs.menuIcon then hs.menuIcon = true end
@@ -372,7 +377,8 @@ end
 local primaryScreen = all[1]
 local secondScreen = all[2]
 if secondScreen and secondScreen:name() == "Color LCD" then
-  wM.shift.x = 0.075; wM.shift.y = 0.1
+  -- wM.shift.x = 0.075; wM.shift.y = 0.1
+  wM.shift.x = 0.075
 else wM.shift.x = 0; wM.shift.y = 0
 end
 twoScreens = {
@@ -381,7 +387,8 @@ twoScreens = {
   {"Microsoft Excel", nil, secondScreen, wM:max()},
 }
 if primaryScreen:name() == "Color LCD" then
-  wM.shift.x = 0.075; wM.shift.y = 0.1
+  -- wM.shift.x = 0.075; wM.shift.y = 0.1
+  wM.shift.x = 0.075
 else wM.shift.x = 0; wM.shift.y = 0
 end
 concat(twoScreens, {
@@ -424,7 +431,9 @@ end
 assign(lay, layfn)
 
 -- -- Consider using code here: https://aaronlasseigne.com/2016/02/16/switching-from-slate-to-hammerspoon/
-wM.shift.x = 0.075; wM.shift.y = 0.1
+-- wM.shift.x = 0.075; wM.shift.y = 0.1
+wM.shift.x = 0.075
+
 local wmfn = function(dict, windowKey, windowMode)
   wM:resizeCurrentWindow(find(dict, windowKey))
   exitMode(windowMode)
