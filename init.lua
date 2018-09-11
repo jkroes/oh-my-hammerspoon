@@ -2,10 +2,10 @@
 -- Open init.lua in ZeroBrane Studio
 -- Project | Start Debugger Server
 -- Reload HS config
-local ZBS = "/Applications//ZeroBraneStudio.app/Contents/ZeroBraneStudio"
+--[[local ZBS = "/Applications//ZeroBraneStudio.app/Contents/ZeroBraneStudio"
 package.path = package.path .. ";" .. ZBS .. "/lualibs/?/?.lua;" .. ZBS .. "/lualibs/?.lua"
 package.cpath = package.cpath .. ";" .. ZBS .. "/bin/?.dylib;" .. ZBS .. "/bin/clibs53/?.dylib"
-require("mobdebug").start()
+require("mobdebug").start()]]
 
 -- print(hs.inspect(hs.keycodes.map))
 
