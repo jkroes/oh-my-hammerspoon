@@ -41,3 +41,6 @@ luac.out
 
 # macOS files
 .DS_Store
+
+# R files
+.Rhistory

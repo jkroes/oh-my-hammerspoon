@@ -13,6 +13,7 @@ require("mobdebug").start()]]
 -- Note that this requires me to change the shift of the windowsManipulation
 -- module. I will comment out the previous lines that are not redundant.
 hs.screen.primaryScreen():setMode(1920, 1080, 1)
+-- hs.inspect(hs.screen.primaryScreen():availableModes())
 
 -- Configure HS
 if not hs.autoLaunch then hs.autoLaunch = true end
@@ -151,13 +152,13 @@ hyperKeys = {
       exitMode("hyper")
     end
   },
-  {
-    key="g",
-    fn=function()
-      launchOrFocus("Google Chrome")
-      exitMode("hyper")
-    end
-  },
+  -- {
+  --   key="g",
+  --   fn=function()
+  --     launchOrFocus("Google Chrome")
+  --     exitMode("hyper")
+  --   end
+  -- },
   {
     key="escape",
     fn=function()
@@ -313,11 +314,12 @@ concat(lA,
   --{ key = "g", app = "Google Chrome" },
   { key = "h", app = "Hammerspoon" },
   { key = "i", app = "iTerm" },
-  { key = "m", app = "Activity Monitor" },
+  { key = "m", app = "Spotify"},
+  -- { key = "m", app = "Activity Monitor" },
   { key = "n", app = "nvALT" },
   { key = "p", app = "Microsoft PowerPoint" },
   { key = "r", app = "RStudio" },
-  { key = "s", app = "Spotify" },
+  { key = "s", app = "Safari" },
   { key = "w", app = "Microsoft Word" },
   { key = "z", app = "Zotero" },
   { key = ".", app = "Adobe Acrobat Reader DC" },
