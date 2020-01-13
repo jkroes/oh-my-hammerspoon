@@ -1,7 +1,3 @@
-obj = {}
-obj.modes = {}
-obj.modes.hyper = hs.hotkey.modal.new()
-
 local function createCanvas(modeName)
   local g = hs.screen.mainScreen():frame() -- Easiest fix to broken screen
   -- is to adjust the boundaries of 'g' BAE
@@ -49,24 +45,17 @@ local function createCanvas(modeName)
 end
 
 local canvas = {}
-function obj:toggleCanvas(modeName)
-  if not self.modes[modeName].active then
+function toggleCanvas(modeName, active)
+  if not active then
     canvas[modeName] = createCanvas(modeName):show()
   else canvas[modeName]:delete(); canvas[modeName] = nil -- delete the lingering userdata
   end
 end -- hs.canvas.help([attribute])
 
-local printChars =  {}
-for i=1,52 do
-  printChars[i] = tostring(i)
-end
-table.insert(printChars, tostring(94)) -- hack for most of the printing chars
--- listed in hs.keycodes.map. may cause issues, keep an eye out. Note that
--- this also covers the shifted chars associated with these keycodes
--- e.g. 2 as well as @
-function obj:restrictKeys()
+local rest
+function restrictKeys()
 
-  self.rest = hs.eventtap.new({hs.eventtap.event.types.keyDown},
+  rest = hs.eventtap.new({hs.eventtap.event.types.keyDown},
   function(event)
 
     local keyCode = tostring(event:getKeyCode())
@@ -89,63 +78,77 @@ function obj:restrictKeys()
 
   end)
 
-  self.rest:start()
-
-
+  rest:start()
 end
 
--- Notification types:
-----Tab, tab: Enter hyper, exit hyper
-----Tab,childkey,tab: Enter hyper, enter child, exit child
-----Tab, childkey, childkey: Enter hyper, enter child, enter hyper
-----Expected behavior for 3+-deep modal chains, such as cheaters
-----If a key is mapped to a childkey, the child mode will only be exited with
-----hyperkey
+
+function entered(self, phrase)
+   print('Entered '..phrase..' mode')
+   toggleCanvas(phrase, false)
+   self.active = true
+   restrictKeys()
+end
+
+function exited(self, phrase)
+   print('Exited '..phrase..' mode')
+   toggleCanvas(phrase, true)
+   rest:stop(); rest = nil
+   self.active = nil
+end
+
+-- Hyper is the top-level mode.
+-- key is bound to a global hotkey such that pressing it activates hyper mode.
+-- Pressing the key again exits any active modes, including hyper or
+-- any child modes.
+-- obj:bindHyper() should be called prior to obj:bindModes()
+local obj = {}
+function obj:bindHyper(key)
+  self.modes = {}
+  local hyper = hs.hotkey.modal.new()
+  self.modes.hyper = hyper
+  
+  local hyperfun = function()
+    local exit_active = function(mode)
+      if mode.active then mode:exit() end
+    end
+    
+    if not hyper.watch then hyper:enter(); hyper.watch = true
+    else hyper.watch = nil; hs.fnutils.each(self.modes, exit_active)
+    end
+  end
+  
+  hs.hotkey.bind({}, key, hyperfun)
+
+  function hyper:entered() entered(self, 'hyper') end
+  function hyper:exited() exited(self, 'hyper') end 
+end
+
+-- Arguments: parent, key, phrase, altEscapeKey
+-- Pressing key exits the parent mode and enters the child mode.
+-- Pressing key again, or altEscapeKey if one was provided, exits the child mode
+-- and enters the parent mode.
+-- altEscapeKey is useful if the key used to enter the child mode is rebound to
+-- something else within the child mode. In this case, pressing altEscapeKey exits back to
+-- the parent mode (hyper), while pressing hyper still exits all modes.
+-- When a mode is entered or exited, a message is printed to both the console for
+-- debugging by the code maintainer, and to the screen for the user.
 function obj:bindModes(arg)
-  local modes = self.modes
-  local hyper = modes.hyper
-  local parent = arg.parent
-  if type(parent) == 'string' then parent = modes[arg.parent] end
-  local child -- forward declaration
-  local key = arg.key
-  local phrase = arg.phrase
-  local altEscapeKey = arg.altEscapeKey
+   local hyper = self.modes.hyper
+   -- Either the object or a string naming it can be passed
+   local parent = type(arg.parent) == "string" and self.modes[arg.parent] or arg.parent
+   local child = hs.hotkey.modal.new(); self.modes[arg.phrase] = child -- Stash child mode
+   
+   parent:bind({}, arg.key, function() parent:exit(); child:enter() end)
+   child:bind({}, arg.altEscapeKey or arg.key, function() child:exit(); parent:enter() end)
 
-  if parent then
-    child = hs.hotkey.modal.new(); self.modes[phrase] = child
-    child.parent = parent
-    parent:bind({}, key, function() parent:exit(); child:enter() end)
-    if altEscapeKey then key = altEscapeKey end
-    child:bind({}, key, function() child:exit(); parent:enter() end)
-  else
-    hs.hotkey.bind({}, key, function()
-      if not hyper.watch then hyper:enter(); hyper.watch = true
-      else
-        hyper.watch = nil; hs.fnutils.each(self.modes, function(element)
-          if element.active then element:exit() end
-        end)
-      end
-    end)
-    child = hyper
-  end
-
-  -- Overwrite modal objects' enter-exit methods
-  local saveYourSelf = self -- disambiguate self for inner methods
-  function child:entered()
-    print('Entered ' .. phrase .. ' mode')
-    saveYourSelf:toggleCanvas(phrase)
-    child.active = true
-    saveYourSelf:restrictKeys()
-  end
-
-  function child:exited()
-    print('Exited ' .. phrase .. ' mode')
-    saveYourSelf:toggleCanvas(phrase)
-    saveYourSelf.rest:stop(); saveYourSelf.rest = nil
-    child.active = nil
-  end
+   function child:entered() entered(self, arg.phrase) end
+   function child:exited() exited(self, arg.phrase) end
 end
 
+
+-- Needed to end modes when executing a non-modal keypress.
+-- You don't always want this to happen, so it needs to be called in
+-- cases where you do (in init.lua).
 function obj:exitSequentialMode(mode, withoutMsg)
   local hyper = self.modes.hyper
   if not withoutMsg then hyper.watch = nil end
