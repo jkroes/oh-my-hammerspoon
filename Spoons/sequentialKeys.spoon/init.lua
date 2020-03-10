@@ -4,16 +4,16 @@ local function createCanvas(modeName)
   local canvas = hs.canvas.new{x=g._x,y=g._y,w=g._w,h=g._h}
   local canvasFrame = canvas:frame(); canvasFrame.__luaSkinType = nil
   canvas:alpha(0.8)
-
+  
   --local phrase = "Entered "..modeName.." mode"
   local phrase = string.upper(modeName)
   canvas:appendElements({
-    type = "text",
+      type = "text",
     text = phrase, -- needs to be changeable by mode
     textColor = hs.drawing.color.lists().Apple.White,
     textSize = 50,
   })
-
+  
   local minDims = canvas:minimumTextSize(1, phrase) -- sub a var for
   -- this string and value of 'text' above
   minDims._luaSkinType = nil
@@ -52,48 +52,42 @@ function toggleCanvas(modeName, active)
   end
 end -- hs.canvas.help([attribute])
 
-local rest
-function restrictKeys()
+local obj = {}
 
-  rest = hs.eventtap.new({hs.eventtap.event.types.keyDown},
-  function(event)
 
-    local keyCode = tostring(event:getKeyCode())
-    -- print("keycode: ", keyCode)
-    local hotkeyList = hs.hotkey.getHotkeys()
-    -- print("hoykeyList: ", hs.inspect(hotkeyList))
-    local hotkeyCodes = hs.fnutils.imap(hotkeyList, function(elem)
-      local hk = tostring(elem._hk)
-      -- print("hk: ", hk)
-      local sm = string.match(hk,"keycode: (%d+)")
-      -- print("sm: ", sm)
-      return sm
-    end)
-
-    local isHotkey = hs.fnutils.contains(hotkeyCodes, keyCode)
-    -- print("isHotkey: ", isHotkey)
-    if not isHotkey then
-      return true
-    end
-
+function obj:restrictKeys()
+  self.rest = hs.eventtap.new({hs.eventtap.event.types.keyDown}, function(event)
+      local keyCode = tostring(event:getKeyCode())
+      local hotkeyList = hs.hotkey.getHotkeys() -- List of keys bound to active mode
+      local hotkeyCodes = hs.fnutils.imap(
+        hotkeyList,
+        function(elem)
+          local hk = tostring(elem._hk)
+          local sm = string.match(hk,"keycode: (%d+)")
+          return sm
+      end)
+      
+      local isHotkey = hs.fnutils.contains(hotkeyCodes, keyCode)
+      if not isHotkey then
+        return true
+      end
   end)
-
-  rest:start()
+  
+  self.rest:start()
 end
 
-
-function entered(self, phrase)
-   print('Entered '..phrase..' mode')
-   toggleCanvas(phrase, false)
-   self.active = true
-   restrictKeys()
+function obj:entered(mode, phrase)
+  print('Entered '..phrase..' mode')
+  toggleCanvas(phrase, false)
+  mode.active = true
+  self:restrictKeys()
 end
 
-function exited(self, phrase)
+function obj:exited(mode, phrase)
    print('Exited '..phrase..' mode')
    toggleCanvas(phrase, true)
-   rest:stop(); rest = nil
-   self.active = nil
+   self.rest:stop()
+   mode.active = nil
 end
 
 -- Hyper is the top-level mode.
@@ -101,7 +95,6 @@ end
 -- Pressing the key again exits any active modes, including hyper or
 -- any child modes.
 -- obj:bindHyper() should be called prior to obj:bindModes()
-local obj = {}
 function obj:bindHyper(key)
   self.modes = {}
   local hyper = hs.hotkey.modal.new()
@@ -119,8 +112,9 @@ function obj:bindHyper(key)
   
   hs.hotkey.bind({}, key, hyperfun)
 
-  function hyper:entered() entered(self, 'hyper') end
-  function hyper:exited() exited(self, 'hyper') end 
+  local prev_self = self
+  function hyper:entered() prev_self:entered(self, 'hyper') end
+  function hyper:exited() prev_self:exited(self, 'hyper') end 
 end
 
 -- Arguments: parent, key, phrase, altEscapeKey
@@ -141,15 +135,16 @@ function obj:bindModes(arg)
    parent:bind({}, arg.key, function() parent:exit(); child:enter() end)
    child:bind({}, arg.altEscapeKey or arg.key, function() child:exit(); parent:enter() end)
 
-   function child:entered() entered(self, arg.phrase) end
-   function child:exited() exited(self, arg.phrase) end
+   local prev_self = self
+   function child:entered() prev_self:entered(self, arg.phrase) end
+   function child:exited() prev_self:exited(self, arg.phrase) end
 end
 
 
 -- Needed to end modes when executing a non-modal keypress.
 -- You don't always want this to happen, so it needs to be called in
 -- cases where you do (in init.lua).
-function obj:exitSequentialMode(mode, withoutMsg)
+function obj:exitMode(mode, withoutMsg)
   local hyper = self.modes.hyper
   if not withoutMsg then hyper.watch = nil end
   if type(mode) == 'string' then mode = self.modes[mode] end

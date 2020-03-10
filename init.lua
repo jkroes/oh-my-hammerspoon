@@ -48,12 +48,6 @@ spoon.TextClipboardHistory:start()
 
 -- Determine modal sequence
 hs.loadSpoon('sequentialKeys')
--- Passing object to its method via partial allows for calling method
--- similar to a function, without colon syntax
-local bindModes = hs.fnutils.partial(spoon.sequentialKeys.bindModes,
-				     spoon.sequentialKeys)
-local exitMode = hs.fnutils.partial(spoon.sequentialKeys.exitSequentialMode,
-				    spoon.sequentialKeys)
 
 -- https://github.com/hetima/hammerspoon-foundation_remapping
 package.path = package.path..';foundation/?.lua'
@@ -67,19 +61,19 @@ spoon.sequentialKeys:bindHyper("f13")
 
 local lA = {}
 lA.phrase = "app launch"
-bindModes{parent="hyper", key="a", phrase=lA.phrase}
+spoon.sequentialKeys:bindModes{parent="hyper", key="a", phrase=lA.phrase}
 
 hs.loadSpoon('windowManipulation')
 local wM = spoon.windowManipulation
 wM.screens.phrase = omh.find(wM, wM.screens)
 wM.halves.phrase = omh.find(wM, wM.halves)
 wM.quarters.phrase = omh.find(wM, wM.quarters)
-bindModes{parent="hyper", key="s", phrase=wM.screens.phrase}
-bindModes{parent="hyper", key="h", phrase=wM.halves.phrase}
-bindModes{parent="hyper", key="q", phrase=wM.quarters.phrase}
+spoon.sequentialKeys:bindModes{parent="hyper", key="s", phrase=wM.screens.phrase}
+spoon.sequentialKeys:bindModes{parent="hyper", key="h", phrase=wM.halves.phrase}
+spoon.sequentialKeys:bindModes{parent="hyper", key="q", phrase=wM.quarters.phrase}
 
 -- Bind keys to modes
-local hyperKeys -- forward declaration
+--local hyperKeys -- forward declaration
 local function assign(keyDict, fn)
    local mode
    if keyDict == hyperKeys then mode = spoon.sequentialKeys.modes.hyper
@@ -96,12 +90,40 @@ local function assign(keyDict, fn)
   end)
 end --
 
+local wmfn = function(dict, windowKey, windowMode)
+  wM:resizeCurrentWindow(omh.find(dict, windowKey))
+  spoon.sequentialKeys:exitMode(windowMode)
+end
+assign(wM.screens, wmfn)
+assign(wM.halves, wmfn)
+assign(wM.quarters, wmfn)
+
+-- Handling graphical application window running via docker and X11 server
+-- TODO: If hs.application.get('XQuartz') is hs.application.frontmostApplication()
+--  then e.g. HYPER-q-u should pass the coordinates necessary to fit the upper left
+--  portion of the screen. Passing slightly different (-1 in each dimension) coordinates
+--  followed by the previous coordinates can activate it similar to launchOrFocus
+-- TODO: Remove container when done
+-- TODO: Add workspace volume with arg to persist on macos filesystem after work completes or do a git hook or something
+--   to prevent work being lost. Alternatively, learn how to restart containers as needed
+-- TODO: Install R and python packages in dockerfile
+-- TODO: Run neovim in background with -d flag to docker run, so you can use that shell to control docker
+local shell = hs.execute("echo $SHELL")
+if shell == "/usr/local/bin/fish\n" then
+  hs.execute("wmctrl -i -r (wmctrl -l | cut -d' ' -f1) -e 0,0,0,1000,1000", 1)
+end
+
+if shell == "/usr/local/bin/bash\n" then
+  hs.execute("wmctrl -i -r $(wmctrl -l | cut -d' ' -f1) -e 0,0,0,800,800", 1)
+end
+
+
 hyperKeys = {
   {
     key="c",
     fn=function()
       hs.execute('open ' .. hs.configdir .. '/init.lua')
-      exitMode("hyper")
+      spoon.sequentialKeys:exitMode("hyper")
     end
   },
   {
@@ -116,14 +138,14 @@ hyperKeys = {
     key='v',
     fn=function()
       spoon.TextClipboardHistory:toggleClipboard()
-      exitMode("hyper")
+      spoon.sequentialKeys:exitMode("hyper")
     end
   }, -- contextual copy-paste
   {
     key='m',
     fn=function()
       wM:resizeCurrentWindow(omh.find(wM,wM.maximize))
-      exitMode("hyper")
+      spoon.sequentialKeys:exitMode("hyper")
     end
   } -- maximize focused window
 }
@@ -151,7 +173,7 @@ hs.fnutils.concat(lA,
 }) -- App names, or absolute paths, as shown in Finder/terminal, not app titles
 local lafn = function(dict, element, mode)
   hs.application.launchOrFocus(element.app)
-  exitMode(mode)
+  spoon.sequentialKeys:exitMode(mode)
 end
 assign(lA, lafn)
 
@@ -159,8 +181,8 @@ assign(lA, lafn)
 spoon.sequentialKeys.modes["app launch"]:bind({}, "e",
   function()
     hs.application.launchOrFocus("Emacs")
-    hs.application.get("Emacs"):activate()
-    exitMode("app launch")
+    hs.application.get("Emacs"):activate() -- Emacs doesn't focus if launched already
+    spoon.sequentialKeys:exitMode("app launch")
   end
                                             )
 
@@ -170,13 +192,8 @@ local screenwatcher = hs.screen.watcher.new(function()
 end)
 screenwatcher:start()
 
-local wmfn = function(dict, windowKey, windowMode)
-  wM:resizeCurrentWindow(omh.find(dict, windowKey))
-  exitMode(windowMode)
-end
-assign(wM.screens, wmfn)
-assign(wM.halves, wmfn)
-assign(wM.quarters, wmfn)
+
+    
 
 -- Window filter to swap cmd with ctrl key in Pycharm, for consistency of MacOS keymap with Windows keymap.
 --remapper2 = FRemap.new()
