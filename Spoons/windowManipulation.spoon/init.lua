@@ -3,23 +3,6 @@
 
 local obj = {
   shift = {x = 0, y = 0},
-  maximize = "m",
-  screens = {
-    screen_right = "l",
-    screen_left = "j"
-  },
-  halves = {
-    left = "j",
-    right = "l",
-    top = "i",
-    bottom = "m"
-  },
-  quarters = {
-    bottom_left = "j",
-    bottom_right = "k",
-    top_left = "u",
-    top_right = "i"
-  }
 }
 
 -- Frames
