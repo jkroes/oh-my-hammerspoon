@@ -163,6 +163,7 @@ sK:bindModalKeys{
     { key = "d", "Dash" },
     { key = "e", "Emacs" },
     { key = "i", "iTerm" },
+    { key = "m", "Spotify" },
     { key = "n", "nvALT" },
     { key = "p", "PyCharm" },
     { key = "r", "RStudio" },
