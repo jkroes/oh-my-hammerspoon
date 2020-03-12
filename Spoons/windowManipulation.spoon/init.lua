@@ -1,27 +1,25 @@
 --- Diego Zamboni <diego@zzamboni.org>
 -- Window management
 
-local obj = {}
-obj.shift = {}
-obj.shift.x = 0
-obj.shift.y = 0
-
-obj.maximize = "m"
-obj.screens = {
-  screen_right = "l",
-  screen_left = "j"
-}
-obj.halves = {
-  left = "j",
-  right = "l",
-  top = "i",
-  bottom = "m"
-}
-obj.quarters = {
-  bottom_left = "j",
-  bottom_right = "k",
-  top_left = "u",
-  top_right = "i"
+local obj = {
+  shift = {x = 0, y = 0},
+  maximize = "m",
+  screens = {
+    screen_right = "l",
+    screen_left = "j"
+  },
+  halves = {
+    left = "j",
+    right = "l",
+    top = "i",
+    bottom = "m"
+  },
+  quarters = {
+    bottom_left = "j",
+    bottom_right = "k",
+    top_left = "u",
+    top_right = "i"
+  }
 }
 
 -- Frames

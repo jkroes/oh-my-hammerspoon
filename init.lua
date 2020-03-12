@@ -34,7 +34,7 @@ hs.hotkey.showHotkeys({"cmd","alt","ctrl"}, "s")
 -- Library
 local omh = require('omh-lib')
 
--- Modules
+-- Spoons
 hs.loadSpoon('reloadConfig')
 spoon.reloadConfig.auto_reload = true
 spoon.reloadConfig.manual_reload_key = {} -- disable manual reload
@@ -46,9 +46,14 @@ spoon.TextClipboardHistory.paste_on_select = true
 spoon.TextClipboardHistory.honor_ignoredidentifiers = true -- default; just in case
 spoon.TextClipboardHistory:start()
 
--- Determine modal sequence
 hs.loadSpoon('sequentialKeys')
+local sK = spoon.sequentialKeys
 
+hs.loadSpoon('windowManipulation')
+local wM = spoon.windowManipulation
+
+
+-- Rebind caps lock to hyper 
 -- https://github.com/hetima/hammerspoon-foundation_remapping
 package.path = package.path..';foundation/?.lua'
 local FRemap = require('foundation_remapping')
@@ -56,47 +61,119 @@ remapper = FRemap.new()
 remapper:remap('capslock', 'f13')
 remapper:register() -- NOTICE: Remapping is effective until system termination
 -- even after quit Hammerspoon. Use remapper:unregister()
--- Binding for the hyper key (rebound to capslock by remapper)
-spoon.sequentialKeys:bindHyper("f13")
 
-local lA = {}
-lA.phrase = "app launch"
-spoon.sequentialKeys:bindModes{parent="hyper", key="a", phrase=lA.phrase}
+-- Keys bound to hyper
+sK:bindModalKeys{
+  name = 'hyper',
+  key = 'f13',
+  dict = {
+    {
+      key="c",
+      fn=function(mode)
+        hs.execute('open ' .. hs.configdir .. '/init.lua')
+        mode:exit()
+      end
+    },
+    {
+      key="space",
+      fn=function(mode)
+        sK.keyRestriction:stop() -- Disable modal key restriction to pass through this keypress
+        hs.eventtap.keyStroke({"cmd"}, "`")
+        sK.keyRestriction:start() -- Reenable restrictions
+      end
+    }, -- switch windows
+    {
+      key='v',
+      fn=function(mode)
+        spoon.TextClipboardHistory:toggleClipboard()
+        mode:exit()
+      end
+    }, -- contextual copy-paste
+    {
+      key='m',
+      fn=function(mode)
+        wM:resizeCurrentWindow('maximize')
+        mode:exit()
+      end
+    } -- maximize focused window
+  }
+}
 
-hs.loadSpoon('windowManipulation')
-local wM = spoon.windowManipulation
-wM.screens.phrase = omh.find(wM, wM.screens)
-wM.halves.phrase = omh.find(wM, wM.halves)
-wM.quarters.phrase = omh.find(wM, wM.quarters)
-spoon.sequentialKeys:bindModes{parent="hyper", key="s", phrase=wM.screens.phrase}
-spoon.sequentialKeys:bindModes{parent="hyper", key="h", phrase=wM.halves.phrase}
-spoon.sequentialKeys:bindModes{parent="hyper", key="q", phrase=wM.quarters.phrase}
-
--- Bind keys to modes
---local hyperKeys -- forward declaration
-local function assign(keyDict, fn)
-   local mode
-   if keyDict == hyperKeys then mode = spoon.sequentialKeys.modes.hyper
-   else mode = spoon.sequentialKeys.modes[keyDict.phrase]; keyDict.phrase = nil end
-
-  hs.fnutils.each(keyDict, function(element)
-    local mod = {} -- default key modifier
-    local key; if element.key then key = element.key -- all else besides...
-    else key = element end -- ...window manipulation
-    if type(key) == "table" then mod=key[1]; key=key[2] end
-    if element.fn then fun = element.fn -- hyper
-    else fun = hs.fnutils.partial(fn, keyDict, element, mode) end -- not hyper
-    mode:bind(mod, key, fun)
-  end)
-end --
-
-local wmfn = function(dict, windowKey, windowMode)
-  wM:resizeCurrentWindow(omh.find(dict, windowKey))
-  spoon.sequentialKeys:exitMode(windowMode)
+-- Manage windows: all but maximize
+local function windowFun(how, mode)
+  wM:resizeCurrentWindow(how)
+  mode:exit()
 end
-assign(wM.screens, wmfn)
-assign(wM.halves, wmfn)
-assign(wM.quarters, wmfn)
+
+sK:bindModalKeys{
+  name = 'screens',
+  key = 's',
+  parent = 'hyper',
+  fn = windowFun, 
+  dict = {
+      { key = 'j', 'screen_left' },
+      { key = 'l', 'screen_right' }
+  }
+}
+
+sK:bindModalKeys{
+  name = 'quarters',
+  key = 'q',
+  parent = 'hyper',
+  fn = windowFun, 
+  dict = {
+      { key = 'j', 'bottom_left' },
+      { key = 'k', 'bottom_right' },
+      { key = 'u', 'top_left' },
+      { key = 'i', 'top_right' }
+  }
+}
+
+sK:bindModalKeys{
+  name = 'halves',
+  key = 'h',
+  parent = 'hyper',
+  fn = windowFun, 
+  dict = {
+      { key = 'j', 'left' },
+      { key = 'l', 'right' },
+      { key = 'i', 'top' },
+      { key = 'm', 'bottom' }
+  }
+}
+  
+-- Launch and focus applications
+--hs.application.enableSpotlightForNameSearches(true)
+local function launchFun(app, mode)
+  hs.application.launchOrFocus(app)
+  if app == "Emacs" then -- Emacs doesn't focus via launchOrFocus if already launched
+    hs.application.get("Emacs"):activate() 
+  end
+  mode:exit()
+end
+
+sK:bindModalKeys{
+  name = 'app launch',
+  key = 'a',
+  parent = 'hyper',
+  fn = launchFun,
+  dict = {
+    { key = "a", "Atom" },
+    { key = "c", "Calendar" },
+    { key = "d", "Dash" },
+    { key = "e", "Emacs" },
+    { key = "i", "iTerm" },
+    { key = "n", "nvALT" },
+    { key = "p", "PyCharm" },
+    { key = "r", "RStudio" },
+    { key = "s", "Safari" },
+    { key = "w", "Microsoft Word" },
+    { key = "z", "Zotero" },
+    { key = ".", "Adobe Acrobat Reader DC" },
+  }
+} -- App names, or absolute paths, as shown in Finder/terminal, not app titles
+
+
 
 -- Handling graphical application window running via docker and X11 server
 -- TODO: If hs.application.get('XQuartz') is hs.application.frontmostApplication()
@@ -118,73 +195,7 @@ if shell == "/usr/local/bin/bash\n" then
 end
 
 
-hyperKeys = {
-  {
-    key="c",
-    fn=function()
-      hs.execute('open ' .. hs.configdir .. '/init.lua')
-      spoon.sequentialKeys:exitMode("hyper")
-    end
-  },
-  {
-    key="space",
-    fn=function()
-      spoon.sequentialKeys.rest:stop()
-      hs.eventtap.keyStroke({"cmd"}, "`")
-      spoon.sequentialKeys.rest:start()
-    end
-  }, -- switch windows
-  {
-    key='v',
-    fn=function()
-      spoon.TextClipboardHistory:toggleClipboard()
-      spoon.sequentialKeys:exitMode("hyper")
-    end
-  }, -- contextual copy-paste
-  {
-    key='m',
-    fn=function()
-      wM:resizeCurrentWindow(omh.find(wM,wM.maximize))
-      spoon.sequentialKeys:exitMode("hyper")
-    end
-  } -- maximize focused window
-}
-assign(hyperKeys)
 
---hs.application.enableSpotlightForNameSearches(true)
-
-hs.fnutils.concat(lA,
-{
-  { key = "a", app = "Atom" },
-  { key = "c", app = "Calendar" },
-  { key = "d", app = "Dash" },
-  --{ key = "g", app = "Google Chrome" },
-  { key = "h", app = "Hammerspoon" },
-  { key = "i", app = "iTerm" },
-  { key = "m", app = "Spotify"},
-  -- { key = "m", app = "Activity Monitor" },
-  { key = "n", app = "nvALT" },
-  { key = "p", app = "PyCharm" },
-  { key = "r", app = "RStudio" },
-  { key = "s", app = "Safari" },
-  { key = "w", app = "Microsoft Word" },
-  { key = "z", app = "Zotero" },
-  { key = ".", app = "Adobe Acrobat Reader DC" },
-}) -- App names, or absolute paths, as shown in Finder/terminal, not app titles
-local lafn = function(dict, element, mode)
-  hs.application.launchOrFocus(element.app)
-  spoon.sequentialKeys:exitMode(mode)
-end
-assign(lA, lafn)
-
--- launchOrFocus won't focus an already launched Emacs!
-spoon.sequentialKeys.modes["app launch"]:bind({}, "e",
-  function()
-    hs.application.launchOrFocus("Emacs")
-    hs.application.get("Emacs"):activate() -- Emacs doesn't focus if launched already
-    spoon.sequentialKeys:exitMode("app launch")
-  end
-                                            )
 
 -- Reload script if screen changes
 local screenwatcher = hs.screen.watcher.new(function()
@@ -221,4 +232,3 @@ screenwatcher:start()
 -- if hs.screen.primaryScreen() ~= all[1] then
 --   error("I thought the primary screen was always the first element of hs.screen.allScreens(). Wtf")
 -- end
-
