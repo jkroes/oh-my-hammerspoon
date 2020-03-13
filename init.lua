@@ -51,7 +51,10 @@ local sK = spoon.sequentialKeys
 
 hs.loadSpoon('windowManipulation')
 local wM = spoon.windowManipulation
-
+-- !!!!!!!!!!!!!!!!!
+-- Requires you to uncheck System Preferences>Mission Control>Displays Have Separate Spaces
+wM.x11app = 'Neovim'
+-- !!!!!!!!!!!!!!!!!
 
 -- Rebind caps lock to hyper 
 -- https://github.com/hetima/hammerspoon-foundation_remapping
@@ -186,16 +189,6 @@ sK:bindModalKeys{
 --   to prevent work being lost. Alternatively, learn how to restart containers as needed
 -- TODO: Install R and python packages in dockerfile
 -- TODO: Run neovim in background with -d flag to docker run, so you can use that shell to control docker
-local shell = hs.execute("echo $SHELL")
-if shell == "/usr/local/bin/fish\n" then
-  hs.execute("wmctrl -i -r (wmctrl -l | cut -d' ' -f1) -e 0,0,0,1000,1000", 1)
-end
-
-if shell == "/usr/local/bin/bash\n" then
-  hs.execute("wmctrl -i -r $(wmctrl -l | cut -d' ' -f1) -e 0,0,0,800,800", 1)
-end
-
-
 
 
 -- Reload script if screen changes
