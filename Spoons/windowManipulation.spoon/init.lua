@@ -86,13 +86,18 @@ local xscreen = hs.screen.primaryScreen() -- Initial value
 local ur = {0,0,0.5,0.5} -- Initial value
 function obj:resizeX11Window(how)
   if how == "screen_left" then
-    xscreen = xscreen:toWest() or xscreen:toEast()
+    xscreen = xscreen:toWest() or xscreen:toEast() or xscreen
   elseif how == "screen_right" then
-    xscreen = xscreen:toEast() or xscreen:toWest()
+    xscreen = xscreen:toEast() or xscreen:toWest() or xscreen
   else
     ur = self[how](self)
   end
   r = xscreen:fromUnitRect(ur)
+  -- Equivalent to:
+  -- x = ur[1] * frame._w + frame._x
+  -- y = ur[2] * frame._h + frame._y
+  -- w = ur[3] * frame._w
+  -- h = ur[4] * frame._h
   
   local cmd = "wmctrl -i -r $(wmctrl -l | grep %s | cut -d' ' -f1) -e 0,%d,%d,%d,%d"
   local shell = hs.execute("echo $SHELL")

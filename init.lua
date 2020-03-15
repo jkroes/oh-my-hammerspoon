@@ -24,13 +24,6 @@ if hs.dockIcon then hs.dockIcon = nil end
 -- Show enabled hotkeys (hold CMD-ALT-CRL s)
 hs.hotkey.showHotkeys({"cmd","alt","ctrl"}, "s")
 
--- -- Testing hyper key library
--- package.path = package.path..';hyperex/?.lua'
--- local hyperex = require('hyperex')
--- hx = hyperex.new('f1'):withMessage("testEnter","testExit",0.5)
--- hx:sticky('toggle')
--- hx:bind('x'):to(function() hs.eventtap.keyStroke({}, 'x') end)
-
 -- Library
 local omh = require('omh-lib')
 
@@ -47,7 +40,7 @@ spoon.TextClipboardHistory.honor_ignoredidentifiers = true -- default; just in c
 spoon.TextClipboardHistory:start()
 
 hs.loadSpoon('sequentialKeys')
-local sK = spoon.sequentialKeys
+local sK = spoon.sequentialKeys -- Compare to hetima/hammerspoon-hyperex sometime
 
 hs.loadSpoon('windowManipulation')
 local wM = spoon.windowManipulation
@@ -177,20 +170,6 @@ sK:bindModalKeys{
   }
 } -- App names, or absolute paths, as shown in Finder/terminal, not app titles
 
-
-
--- Handling graphical application window running via docker and X11 server
--- TODO: If hs.application.get('XQuartz') is hs.application.frontmostApplication()
---  then e.g. HYPER-q-u should pass the coordinates necessary to fit the upper left
---  portion of the screen. Passing slightly different (-1 in each dimension) coordinates
---  followed by the previous coordinates can activate it similar to launchOrFocus
--- TODO: Remove container when done
--- TODO: Add workspace volume with arg to persist on macos filesystem after work completes or do a git hook or something
---   to prevent work being lost. Alternatively, learn how to restart containers as needed
--- TODO: Install R and python packages in dockerfile
--- TODO: Run neovim in background with -d flag to docker run, so you can use that shell to control docker
-
-
 -- Reload script if screen changes
 local screenwatcher = hs.screen.watcher.new(function()
 	hs.reload()
@@ -221,8 +200,3 @@ screenwatcher:start()
 --charmWindowFilter:subscribe(hs.window.filter.windowFocused, swapCMDWithCTRL)
 --charmWindowFilter:subscribe(hs.window.filter.windowUnfocused, unswapCMDWithCTRL)
 
--- Just in case I didn't understand the API as well as I thought
--- local all = allScreens()
--- if hs.screen.primaryScreen() ~= all[1] then
---   error("I thought the primary screen was always the first element of hs.screen.allScreens(). Wtf")
--- end
