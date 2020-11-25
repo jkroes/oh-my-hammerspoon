@@ -46,10 +46,15 @@ hs.loadSpoon('windowManipulation')
 local wM = spoon.windowManipulation
 -- !!!!!!!!!!!!!!!!!
 -- Requires you to uncheck System Preferences>Mission Control>Displays Have Separate Spaces
-wM.x11app = 'Neovim'
+-- NOTE: See the windowManipulation spoon code. I believe this is used to
+-- interact with X-based nvim-qt started after running dockervim's ./nvim.fish
+-- NOTE: I think I used to have nvim-qt installed in docker. I stopped using
+-- nvim-qt, since I could still spawn R plots in an X window from within
+-- terminal nvim in a docker instance.
+-- wM.x11app = 'Neovim'
 -- !!!!!!!!!!!!!!!!!
 
--- Rebind caps lock to hyper 
+-- Rebind caps lock to hyper
 -- https://github.com/hetima/hammerspoon-foundation_remapping
 package.path = package.path..';foundation/?.lua'
 local FRemap = require('foundation_remapping')
@@ -57,6 +62,33 @@ remapper = FRemap.new()
 remapper:remap('capslock', 'f13')
 remapper:register() -- NOTICE: Remapping is effective until system termination
 -- even after quit Hammerspoon. Use remapper:unregister()
+
+-- Window filter to swap cmd with ctrl key in Pycharm, for consistency of MacOS keymap with Windows keymap.
+remapper2 = FRemap.new()
+local function swapCMDWithCTRL()
+ print('on')
+ remapper:unregister()
+ remapper2:remap('capslock', 'f13')
+ remapper2:remap('lcmd', 'lctrl')
+ remapper2:remap('lctrl', 'lcmd')
+ remapper2:remap('rcmd', 'rctrl')
+ remapper2:remap('rctrl', 'rcmd')
+ remapper2:register()
+end
+
+local function unswapCMDWithCTRL()
+ print('off')
+ remapper2:unregister()
+ remapper:register()
+end
+-- NOTE: This is only necessary for GUI Vim. iTerm2 supports modifier remapping
+-- NOTE: Avalonia Application is the name recognized for FVim
+-- via "Preferences>Keys>Remap Modifiers"
+local wf = hs.window.filter
+local wf_vim = wf.new{'Avalonia Application'}
+wf_vim:subscribe(wf.windowFocused, swapCMDWithCTRL)
+wf_vim:subscribe(wf.windowUnfocused, unswapCMDWithCTRL)
+
 
 -- Keys bound to hyper
 sK:bindModalKeys{
@@ -105,7 +137,7 @@ sK:bindModalKeys{
   name = 'screens',
   key = 's',
   parent = 'hyper',
-  fn = windowFun, 
+  fn = windowFun,
   dict = {
       { key = 'j', 'screen_left' },
       { key = 'l', 'screen_right' }
@@ -116,7 +148,7 @@ sK:bindModalKeys{
   name = 'quarters',
   key = 'q',
   parent = 'hyper',
-  fn = windowFun, 
+  fn = windowFun,
   dict = {
       { key = 'j', 'bottom_left' },
       { key = 'k', 'bottom_right' },
@@ -129,7 +161,7 @@ sK:bindModalKeys{
   name = 'halves',
   key = 'h',
   parent = 'hyper',
-  fn = windowFun, 
+  fn = windowFun,
   dict = {
       { key = 'j', 'left' },
       { key = 'l', 'right' },
@@ -137,13 +169,13 @@ sK:bindModalKeys{
       { key = 'm', 'bottom' }
   }
 }
-  
+
 -- Launch and focus applications
 --hs.application.enableSpotlightForNameSearches(true)
 local function launchFun(app, mode)
   hs.application.launchOrFocus(app)
   if app == "Emacs" then -- Emacs doesn't focus via launchOrFocus if already launched
-    hs.application.get("Emacs"):activate() 
+    hs.application.get("Emacs"):activate()
   end
   mode:exit()
 end
@@ -154,19 +186,16 @@ sK:bindModalKeys{
   parent = 'hyper',
   fn = launchFun,
   dict = {
-    { key = "a", "Atom" },
     { key = "c", "Calendar" },
     { key = "d", "Dash" },
     { key = "e", "Emacs" },
     { key = "i", "iTerm" },
     { key = "m", "Spotify" },
     { key = "n", "nvALT" },
-    { key = "p", "PyCharm" },
-    { key = "r", "RStudio" },
-    { key = "s", "Safari" },
+    { key = "s", "Google Chrome" },
     { key = "w", "Microsoft Word" },
     { key = "z", "Zotero" },
-    { key = ".", "Adobe Acrobat Reader DC" },
+    { key = ".", "Preview" },
   }
 } -- App names, or absolute paths, as shown in Finder/terminal, not app titles
 
@@ -177,26 +206,5 @@ end)
 screenwatcher:start()
 
 
-    
 
--- Window filter to swap cmd with ctrl key in Pycharm, for consistency of MacOS keymap with Windows keymap.
---remapper2 = FRemap.new()
---local function swapCMDWithCTRL()
---  remapper:unregister()
---  remapper2:remap('capslock', 'f13')
---  remapper2:remap('lcmd', 'lctrl')
---  remapper2:remap('lctrl', 'lcmd')
---  remapper2:remap('rcmd', 'rctrl')
---  remapper2:remap('rctrl', 'rcmd')
---  remapper2:register()
---end
-
---local function unswapCMDWithCTRL()
---  remapper2:unregister()
---  remapper:register()
---end
-
---local charmWindowFilter = hs.window.filter.new(false):setAppFilter('PyCharm')
---charmWindowFilter:subscribe(hs.window.filter.windowFocused, swapCMDWithCTRL)
---charmWindowFilter:subscribe(hs.window.filter.windowUnfocused, unswapCMDWithCTRL)
 
