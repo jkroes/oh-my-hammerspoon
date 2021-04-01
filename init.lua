@@ -89,19 +89,23 @@ remapper:register() -- NOTICE: Remapping is effective until system termination
 -- wf_vim:subscribe(wf.windowFocused, swapCMDWithCTRL)
 -- wf_vim:subscribe(wf.windowUnfocused, unswapCMDWithCTRL)
 
+-- Launch and focus applications
+--hs.application.enableSpotlightForNameSearches(true)
+local function launchFun(app, mode)
+  hs.application.launchOrFocus(app)
+  -- Emacs doesn't focus via launchOrFocus if already launched
+  if app == "Emacs" then
+    hs.application.get("Emacs"):activate()
+  end
+  mode:exit()
+end
 
 -- Keys bound to hyper
+-- Use app names, or absolute paths, as shown in Finder or terminal
 sK:bindModalKeys{
   name = 'hyper',
   key = 'f13',
   dict = {
-    {
-      key="c",
-      fn=function(mode)
-        hs.execute('open ' .. hs.configdir .. '/init.lua')
-        mode:exit()
-      end
-    },
     {
       key="space",
       fn=function(mode)
@@ -111,19 +115,72 @@ sK:bindModalKeys{
       end
     }, -- switch windows
     {
-      key='v',
+      key=".",
+      fn=hs.fnutils.partial(launchFun, "Preview")
+    },
+    {
+      key="b",
+      fn=hs.fnutils.partial(launchFun, "Google Chrome")
+    },
+    {
+      key="c",
+      mod="shift",
       fn=function(mode)
-        spoon.TextClipboardHistory:toggleClipboard()
+        hs.execute('open ' .. hs.configdir .. '/init.lua')
         mode:exit()
       end
-    }, -- contextual copy-paste
+    },
+    {
+      key="d",
+      fn=hs.fnutils.partial(launchFun, "Dash")
+    },
+    {
+      key="e",
+      fn=hs.fnutils.partial(launchFun, "Emacs")
+    },
+    {
+      key="i",
+      fn=hs.fnutils.partial(launchFun, "imdone")
+    },
     {
       key='m',
       fn=function(mode)
         wM:resizeCurrentWindow('maximize')
         mode:exit()
       end
-    } -- maximize focused window
+    }, -- maximize focused window
+    {
+      key="m",
+      mod="shift",
+      fn=hs.fnutils.partial(launchFun, "Spotify")
+    },
+    {
+      key="n",
+      fn=hs.fnutils.partial(launchFun, "nvALT")
+    },
+    {
+      key="o",
+      fn=hs.fnutils.partial(launchFun, "Obsidian")
+    },
+    {
+      key="p",
+      fn=hs.fnutils.partial(launchFun, "Pycharm")
+    },
+    {
+      key="t",
+      fn=hs.fnutils.partial(launchFun, "iTerm")
+    },
+    {
+      key='v',
+      fn=function(mode)
+        spoon.TextClipboardHistory:toggleClipboard()
+        mode:exit()
+      end
+    }, -- contextual copy-paste; TODO: integrate with emacs/vim
+    {
+      key="z",
+      fn=hs.fnutils.partial(launchFun, "Zotero")
+    }
   }
 }
 
@@ -163,48 +220,15 @@ sK:bindModalKeys{
   parent = 'hyper',
   fn = windowFun,
   dict = {
-      { key = 'j', 'left' },
+      { key = 'h', 'left' },
       { key = 'l', 'right' },
-      { key = 'i', 'top' },
-      { key = 'm', 'bottom' }
+      { key = 'k', 'top' },
+      { key = 'j', 'bottom' }
   }
 }
-
--- Launch and focus applications
---hs.application.enableSpotlightForNameSearches(true)
-local function launchFun(app, mode)
-  hs.application.launchOrFocus(app)
-  if app == "Emacs" then -- Emacs doesn't focus via launchOrFocus if already launched
-    hs.application.get("Emacs"):activate()
-  end
-  mode:exit()
-end
-
-sK:bindModalKeys{
-  name = 'app launch',
-  key = 'a',
-  parent = 'hyper',
-  fn = launchFun,
-  dict = {
-    { key = "c", "Calendar" },
-    { key = "d", "Dash" },
-    { key = "e", "Emacs" },
-    { key = "i", "iTerm" },
-    { key = "m", "Spotify" },
-    { key = "n", "nvALT" },
-    { key = "s", "Google Chrome" },
-    { key = "w", "Microsoft Word" },
-    { key = "z", "Zotero" },
-    { key = ".", "Preview" },
-  }
-} -- App names, or absolute paths, as shown in Finder/terminal, not app titles
 
 -- Reload script if screen changes
 local screenwatcher = hs.screen.watcher.new(function()
 	hs.reload()
 end)
 screenwatcher:start()
-
-
-
-
