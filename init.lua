@@ -209,8 +209,8 @@ sK:bindModalKeys{
   dict = {
       { key = 'j', 'bottom_left' },
       { key = 'k', 'bottom_right' },
-      { key = 'u', 'top_left' },
-      { key = 'i', 'top_right' }
+      { key = 'h', 'top_left' },
+      { key = 'l', 'top_right' }
   }
 }
 
