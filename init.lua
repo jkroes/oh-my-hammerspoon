@@ -64,30 +64,30 @@ remapper:register() -- NOTICE: Remapping is effective until system termination
 -- even after quit Hammerspoon. Use remapper:unregister()
 
 -- Window filter to swap cmd with ctrl key in Pycharm, for consistency of MacOS keymap with Windows keymap.
-remapper2 = FRemap.new()
-local function swapCMDWithCTRL()
- print('on')
- remapper:unregister()
- remapper2:remap('capslock', 'f13')
- remapper2:remap('lcmd', 'lctrl')
- remapper2:remap('lctrl', 'lcmd')
- remapper2:remap('rcmd', 'rctrl')
- remapper2:remap('rctrl', 'rcmd')
- remapper2:register()
-end
+-- remapper2 = FRemap.new()
+-- local function swapCMDWithCTRL()
+--  print('on')
+--  remapper:unregister()
+--  remapper2:remap('capslock', 'f13')
+--  remapper2:remap('lcmd', 'lctrl')
+--  remapper2:remap('lctrl', 'lcmd')
+--  remapper2:remap('rcmd', 'rctrl')
+--  remapper2:remap('rctrl', 'rcmd')
+--  remapper2:register()
+-- end
 
-local function unswapCMDWithCTRL()
- print('off')
- remapper2:unregister()
- remapper:register()
-end
+-- local function unswapCMDWithCTRL()
+--  print('off')
+--  remapper2:unregister()
+--  remapper:register()
+-- end
 -- NOTE: This is only necessary for GUI Vim. iTerm2 supports modifier remapping
 -- NOTE: Avalonia Application is the name recognized for FVim
 -- via "Preferences>Keys>Remap Modifiers"
-local wf = hs.window.filter
-local wf_vim = wf.new{'Avalonia Application'}
-wf_vim:subscribe(wf.windowFocused, swapCMDWithCTRL)
-wf_vim:subscribe(wf.windowUnfocused, unswapCMDWithCTRL)
+-- local wf = hs.window.filter
+-- local wf_vim = wf.new{'Avalonia Application'}
+-- wf_vim:subscribe(wf.windowFocused, swapCMDWithCTRL)
+-- wf_vim:subscribe(wf.windowUnfocused, unswapCMDWithCTRL)
 
 
 -- Keys bound to hyper
