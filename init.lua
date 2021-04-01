@@ -56,7 +56,7 @@ local wM = spoon.windowManipulation
 
 -- Rebind caps lock to hyper
 -- https://github.com/hetima/hammerspoon-foundation_remapping
-package.path = package.path..';foundation/?.lua'
+package.path = package.path..';/Users/jkroes/.hammerspoon/foundation/?.lua'
 local FRemap = require('foundation_remapping')
 remapper = FRemap.new()
 remapper:remap('capslock', 'f13')
