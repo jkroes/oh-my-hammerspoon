@@ -207,9 +207,9 @@ sK:bindModalKeys{
   parent = 'hyper',
   fn = windowFun,
   dict = {
-      { key = 'j', 'bottom_left' },
-      { key = 'k', 'bottom_right' },
-      { key = 'h', 'top_left' },
+      { key = 'h', 'bottom_left' },
+      { key = 'j', 'bottom_right' },
+      { key = 'k', 'top_left' },
       { key = 'l', 'top_right' }
   }
 }
